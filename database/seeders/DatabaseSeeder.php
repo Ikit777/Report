@@ -15,23 +15,20 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Seed Users
-        User::create([
+        User::firstOrCreate(['email' => 'fuelman@gmail.com'], [
             'name' => 'Fuelman User',
-            'email' => 'fuelman@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'fuelman',
         ]);
 
-        User::create([
+        User::firstOrCreate(['email' => 'gl@gmail.com'], [
             'name' => 'Group Leader User',
-            'email' => 'gl@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'group_leader',
         ]);
 
-        User::create([
+        User::firstOrCreate(['email' => 'spv@gmail.com'], [
             'name' => 'Supervisor User',
-            'email' => 'spv@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'supervisor',
         ]);
@@ -47,7 +44,10 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($tanks as $tank) {
-            Tank::create($tank);
+            Tank::firstOrCreate(
+                ['code' => $tank['code'], 'main_hole' => $tank['main_hole']],
+                $tank,
+            );
         }
     }
 }

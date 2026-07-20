@@ -122,9 +122,9 @@ if [ -z "$APP_KEY" ]; then
 fi
 
 # =============================================
-# STEP 4: Clear Laravel config cache
+# STEP 4: Clear Laravel caches before connecting to the configured database
 # =============================================
-php artisan config:clear
+php artisan optimize:clear
 
 # =============================================
 # STEP 5: Tunggu database siap (hanya jika pgsql)
@@ -148,8 +148,11 @@ fi
 # STEP 6: Jalankan migrasi dan seeder
 # =============================================
 echo "Running migrations with seed..."
-php artisan migrate --seed --force || echo "Migration/Seed failed but continuing..."
-php artisan view:clear
+php artisan migrate --seed --force
+
+# Compiled Blade views can otherwise survive a container restart when storage
+# is persistent, making a deployment appear to run an older report form.
+php artisan optimize:clear
 
 # =============================================
 # STEP 7: Setup Nginx port
