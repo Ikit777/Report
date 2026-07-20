@@ -176,4 +176,4 @@ echo "Starting Nginx..."
 nginx
 
 echo "Starting PHP-FPM..."
-exec php-fpm
+exec php-fpm -d opcache.validate_timestamps=1 -d opcache.revalidate_freq=0

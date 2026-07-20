@@ -25,6 +25,18 @@ RUN docker-php-ext-install pdo pdo_pgsql mbstring zip exif pcntl
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
 
+# Configure OPcache: always revalidate files so a new deploy is never served
+# with stale cached bytecode from a previous deployment
+RUN { \
+    echo 'opcache.enable=1'; \
+    echo 'opcache.validate_timestamps=1'; \
+    echo 'opcache.revalidate_freq=0'; \
+    echo 'opcache.max_accelerated_files=20000'; \
+    echo 'opcache.memory_consumption=256'; \
+    echo 'opcache.interned_strings_buffer=16'; \
+    echo 'opcache.fast_shutdown=1'; \
+} > /usr/local/etc/php/conf.d/opcache.ini
+
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
