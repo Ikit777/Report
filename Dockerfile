@@ -29,11 +29,15 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy nginx configuration
 COPY .docker/nginx.conf /etc/nginx/http.d/default.conf
 
-# Copy existing application directory contents
+# Copy existing application directory contents and set permissions
 COPY . /var/www
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Configure Nginx to run as www-data user instead of default nginx user
+RUN sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf
+
+# Set permissions for Laravel storage and bootstrap cache
+RUN chown -R www-data:www-data /var/www && \
+    chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Copy and set entrypoint script
 COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
