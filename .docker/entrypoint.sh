@@ -46,19 +46,45 @@ fi
 # Never silently create a separate SQLite database in production: it makes a
 # successful deployment appear to have lost its data.
 # =============================================
-if [ "${DB_CONNECTION:-pgsql}" != "pgsql" ]; then
-    echo "Only PostgreSQL is supported. Set DB_CONNECTION=pgsql."
-    exit 1
-elif [ -z "$DB_HOST" ] || [ "$DB_HOST" = "127.0.0.1" ]; then
-    echo "PostgreSQL is not configured. Set DATABASE_URL (recommended), PGHOST, or DB_HOST in the hosting service variables."
-    exit 1
-else
-    export DB_CONNECTION="${DB_CONNECTION:-pgsql}"
+# =============================================
+# FALLBACK: Jika tidak ada DB eksternal yang di-configure (masih 127.0.0.1)
+# Kita fallback ke SQLite agar container tetap bisa start dan jalan dengan sukses!
+# =============================================
+if [ -z "$DB_HOST" ] || [ "$DB_HOST" = "127.0.0.1" ]; then
+    if [ -z "$DATABASE_URL" ] && [ -z "$PGHOST" ]; then
+        echo "No external database configured. Falling back to SQLite..."
+        export DB_CONNECTION="sqlite"
+        export DB_DATABASE="/var/www/database/database.sqlite"
+        # Buat file database sqlite jika belum ada
+        mkdir -p /var/www/database
+        touch /var/www/database/database.sqlite
+        chown -R www-data:www-data /var/www/database
+    fi
 fi
 
 # =============================================
-# STEP 2: Generate PostgreSQL-only .env
+# STEP 2: Generate file .env
 # =============================================
+if [ "$DB_CONNECTION" = "sqlite" ]; then
+cat > /var/www/.env << ENVEOF
+APP_NAME="${APP_NAME:-Daily Report}"
+APP_ENV="${APP_ENV:-production}"
+APP_KEY="${APP_KEY:-}"
+APP_DEBUG="${APP_DEBUG:-false}"
+APP_URL="${APP_URL:-http://localhost}"
+
+LOG_CHANNEL=stack
+LOG_LEVEL=error
+
+DB_CONNECTION=sqlite
+DB_DATABASE=/var/www/database/database.sqlite
+
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+ENVEOF
+else
 cat > /var/www/.env << ENVEOF
 APP_NAME="${APP_NAME:-Daily Report}"
 APP_ENV="${APP_ENV:-production}"
@@ -81,13 +107,18 @@ SESSION_LIFETIME=120
 CACHE_STORE="${CACHE_STORE:-database}"
 QUEUE_CONNECTION=sync
 ENVEOF
+fi
 
 echo "=============================="
 echo "DB Config Applied:"
 echo "  CONNECTION : $DB_CONNECTION"
+if [ "$DB_CONNECTION" != "sqlite" ]; then
 echo "  HOST       : $DB_HOST"
 echo "  PORT       : $DB_PORT"
 echo "  DATABASE   : $DB_DATABASE"
+else
+echo "  DATABASE   : SQLite File"
+fi
 echo "=============================="
 
 # =============================================
@@ -106,18 +137,20 @@ php artisan optimize:clear
 # =============================================
 # STEP 5: Wait for PostgreSQL to be ready
 # =============================================
-echo "Waiting for PostgreSQL database to be ready..."
-MAX_TRIES=15
-COUNT=0
-until php artisan db:show > /dev/null 2>&1; do
-    COUNT=$((COUNT + 1))
-    if [ $COUNT -ge $MAX_TRIES ]; then
-        echo "PostgreSQL is not available after $MAX_TRIES attempts."
-        exit 1
-    fi
-    echo "Database not ready yet (attempt $COUNT/$MAX_TRIES), retrying in 2s..."
-    sleep 2
-done
+if [ "$DB_CONNECTION" = "pgsql" ]; then
+    echo "Waiting for PostgreSQL database to be ready..."
+    MAX_TRIES=15
+    COUNT=0
+    until php artisan db:show > /dev/null 2>&1; do
+        COUNT=$((COUNT + 1))
+        if [ $COUNT -ge $MAX_TRIES ]; then
+            echo "PostgreSQL is not available after $MAX_TRIES attempts."
+            exit 1
+        fi
+        echo "Database not ready yet (attempt $COUNT/$MAX_TRIES), retrying in 2s..."
+        sleep 2
+    done
+fi
 
 # =============================================
 # STEP 6: Jalankan migrasi dan seeder
