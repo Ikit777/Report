@@ -112,6 +112,7 @@ html[data-theme="dark"] .sheet-table tr.average-row td {
 
 html[data-theme="dark"] .sheet-input {
     color: var(--text-primary) !important;
+    background-color: transparent !important;
 }
 
 html[data-theme="dark"] .sheet-input:hover,
