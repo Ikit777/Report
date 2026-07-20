@@ -34,7 +34,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand-section">
-                <div class="brand-logo">FM</div>
+                <img src="{{ asset('favicon.png') }}" alt="Logo" class="brand-logo">
                 <div>
                     <div class="brand-name">DAILY REPORT</div>
                     <div class="brand-sub">Warehouse & Inventory</div>
