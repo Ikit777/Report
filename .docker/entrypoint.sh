@@ -19,6 +19,12 @@ php artisan view:cache
 echo "Running migrations..."
 php artisan migrate --force
 
+# Set Nginx port dynamically based on PORT env variable (Back4app compatibility)
+if [ -n "$PORT" ]; then
+    echo "Setting Nginx port to $PORT"
+    sed -i "s/listen 80;/listen $PORT;/g" /etc/nginx/http.d/default.conf
+fi
+
 # Start Nginx in background
 nginx
 
