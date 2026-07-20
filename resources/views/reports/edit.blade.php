@@ -3,6 +3,7 @@
 @section('title', 'Ubah Laporan')
 
 @section('content')
+<?php try { ?>
 <div class="content-header">
     <div>
         <h1 class="page-title">Ubah Laporan Harian</h1>
@@ -480,6 +481,14 @@
         </div>
     </div>
 </form>
+<?php } catch (\Throwable $e) { ?>
+   <div class="alert alert-danger" style="margin: 2rem; padding: 1.5rem; border-radius: 8px; background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-family: sans-serif; overflow: hidden; max-width: 100%;">
+       <h3 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">Terjadi Kesalahan di Server (Render Error):</h3>
+       <p style="font-size: 1rem; margin-bottom: 1rem;"><strong>Pesan:</strong> {{ $e->getMessage() }}</p>
+       <pre style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 4px; overflow-x: auto; font-size: 0.85rem; max-height: 300px; white-space: pre-wrap;">File: {{ $e->getFile() }} (Line: {{ $e->getLine() }})
+{{ $e->getTraceAsString() }}</pre>
+   </div>
+<?php } ?>
 @endsection
 
 @section('scripts')
