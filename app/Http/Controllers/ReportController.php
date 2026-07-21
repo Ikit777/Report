@@ -10,13 +10,14 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = DailyReport::with(['fuelman', 'gl', 'spv'])->orderBy('date', 'desc');
+        $query = DailyReport::with(['fuelman', 'gl', 'spv', 'site'])->orderBy('date', 'desc');
 
         // Fuelman only sees their own reports
         if ($user->isFuelman()) {
@@ -40,8 +41,9 @@ class ReportController extends Controller
             ->orderBy('main_hole')
             ->get();
         $defaultDate = now()->format('Y-m-d');
+        $sites = \App\Models\Site::where('is_active', true)->orderBy('code')->get();
 
-        return view('reports.create', compact('tanks', 'defaultDate'));
+        return view('reports.create', compact('tanks', 'defaultDate', 'sites'));
     }
 
     public function store(Request $request)
@@ -50,10 +52,23 @@ class ReportController extends Controller
             abort(403, 'Hanya Fuelman yang dapat membuat laporan baru.');
         }
 
+        \Log::info('Store report attempt', [
+            'user_id' => Auth::id(),
+            'site_id' => $request->site_id,
+            'date' => $request->date,
+            'items_count' => count($request->items ?? [])
+        ]);
+
         $request->validate([
-            'date' => 'required|date|unique:daily_reports,date',
-            'site_name' => 'required|string|max:255',
-            'items' => 'required|array',
+            'date' => [
+                'required',
+                'date',
+                Rule::unique('daily_reports')->where(function ($query) use ($request) {
+                    return $query->where('site_id', $request->site_id);
+                }),
+            ],
+            'site_id' => 'required|exists:sites,id',
+            'items' => 'nullable|array',
             'items.*.tank_id' => 'nullable|exists:tanks,id',
             'items.*.sounding_pagi' => 'nullable|numeric',
             'items.*.liter_pagi' => 'nullable|string',
@@ -102,7 +117,9 @@ class ReportController extends Controller
             'flowmeters.*.akhir_sore' => 'nullable|numeric',
             'flowmeters.*.jumlah_pakai' => 'nullable|numeric',
         ], [
-            'date.unique' => 'Laporan untuk tanggal ini sudah ada.',
+            'date.unique' => 'Laporan untuk site ini pada tanggal tersebut sudah ada.',
+            'site_id.required' => 'Site harus dipilih.',
+            'site_id.exists' => 'Site yang dipilih tidak valid.',
         ]);
 
         DB::beginTransaction();
@@ -110,7 +127,7 @@ class ReportController extends Controller
             $kapasitas = $request->kapasitas ?? [];
             $report = DailyReport::create([
                 'date'       => $request->date,
-                'site_name'  => $request->site_name,
+                'site_id'    => $request->site_id,
                 'status'     => 'draft',
                 'fuelman_id' => Auth::id(),
                 'soh_spm1'   => $kapasitas['SPM1']['soh'] ?? null,
@@ -139,7 +156,7 @@ class ReportController extends Controller
 
     public function show($id)
     {
-        $report = DailyReport::with(['items.tank', 'transfers', 'flowmeters', 'attachments', 'fuelman', 'gl', 'spv'])->findOrFail($id);
+        $report = DailyReport::with(['items.tank', 'transfers', 'flowmeters', 'attachments', 'fuelman', 'gl', 'spv', 'site'])->findOrFail($id);
 
         return view('reports.show', compact('report'));
     }
@@ -166,8 +183,9 @@ class ReportController extends Controller
             ->orderBy('code')
             ->orderBy('main_hole')
             ->get();
+        $sites = \App\Models\Site::where('is_active', true)->orderBy('code')->get();
 
-        return view('reports.edit', compact('report', 'tanks', 'items', 'transfers', 'flowmeters'));
+        return view('reports.edit', compact('report', 'tanks', 'items', 'transfers', 'flowmeters', 'sites'));
     }
 
     public function update(Request $request, $id)
@@ -185,9 +203,15 @@ class ReportController extends Controller
         }
 
         $request->validate([
-            'date' => 'required|date|unique:daily_reports,date,' . $id,
-            'site_name' => 'required|string|max:255',
-            'items' => 'required|array',
+            'date' => [
+                'required',
+                'date',
+                Rule::unique('daily_reports')->where(function ($query) use ($request) {
+                    return $query->where('site_id', $request->site_id);
+                })->ignore($id),
+            ],
+            'site_id' => 'required|exists:sites,id',
+            'items' => 'nullable|array',
             'items.*.tank_id' => 'nullable|exists:tanks,id',
             'items.*.sounding_pagi' => 'nullable|numeric',
             'items.*.liter_pagi' => 'nullable|string',
@@ -244,7 +268,7 @@ class ReportController extends Controller
             $kapasitas = $request->kapasitas ?? [];
             $report->update([
                 'date'      => $request->date,
-                'site_name' => $request->site_name,
+                'site_id'   => $request->site_id,
                 'status'    => 'draft',
                 'soh_spm1'  => $kapasitas['SPM1']['soh'] ?? $report->soh_spm1,
                 'soh_spm2'  => $kapasitas['SPM2']['soh'] ?? $report->soh_spm2,
@@ -423,13 +447,24 @@ class ReportController extends Controller
             }
 
             $tankId = $data['tank_id'];
+            $tank = Tank::find($tankId);
 
-            // Parse liter values - XXXX means no calibration data found
-            $literPagiRaw = $data['liter_pagi'] ?? null;
-            $literPagi = ($literPagiRaw !== null && $literPagiRaw !== '' && $literPagiRaw !== 'XXXX') ? (double)$literPagiRaw : null;
+            // Get sounding values
+            $soundingPagi = isset($data['sounding_pagi']) && $data['sounding_pagi'] !== '' ? (double)$data['sounding_pagi'] : null;
+            $soundingSore = isset($data['sounding_sore']) && $data['sounding_sore'] !== '' ? (double)$data['sounding_sore'] : null;
+
+            // Calculate liter from sounding using calibration data
+            $literPagi = null;
+            $literSore = null;
             
-            $literSoreRaw = $data['liter_sore'] ?? null;
-            $literSore = ($literSoreRaw !== null && $literSoreRaw !== '' && $literSoreRaw !== 'XXXX') ? (double)$literSoreRaw : null;
+            if ($tank) {
+                if ($soundingPagi !== null) {
+                    $literPagi = $tank->soundingToLiter($soundingPagi);
+                }
+                if ($soundingSore !== null) {
+                    $literSore = $tank->soundingToLiter($soundingSore);
+                }
+            }
 
             // Calculate Flow Meter Usage: fm_sore - fm_pagi (hanya jika KEDUA terisi)
             $fmPagi = isset($data['fm_pagi']) && $data['fm_pagi'] !== '' ? (double)$data['fm_pagi'] : null;
@@ -441,12 +476,12 @@ class ReportController extends Controller
 
             $item = new DailyReportItem([
                 'tank_id' => $tankId,
-                'sounding_pagi' => isset($data['sounding_pagi']) && $data['sounding_pagi'] !== '' ? (double)$data['sounding_pagi'] : null,
+                'sounding_pagi' => $soundingPagi,
                 'liter_pagi' => $literPagi,
                 'jam_pagi' => $data['jam_pagi'] ?: null,
                 'petugas_pagi' => $data['petugas_pagi'] ?: null,
                 
-                'sounding_sore' => isset($data['sounding_sore']) && $data['sounding_sore'] !== '' ? (double)$data['sounding_sore'] : null,
+                'sounding_sore' => $soundingSore,
                 'liter_sore' => $literSore,
                 'jam_sore' => $data['jam_sore'] ?: null,
                 'petugas_sore' => $data['petugas_sore'] ?: null,
@@ -459,7 +494,6 @@ class ReportController extends Controller
 
             $report->items()->save($item);
 
-            $tank = Tank::find($tankId);
             $context = trim(implode(' — ', array_filter([
                 'Tangki ' . ($tank?->code ?? '-'),
                 $tank?->main_hole,
@@ -498,8 +532,25 @@ class ReportController extends Controller
                 $fmJumlah = $fmAkhir - $fmAwal;
             }
 
-            $spmLiterRaw = $data['spm_liter'] ?? null;
-            $ftLiterRaw = $data['ft_liter'] ?? null;
+            // Calculate liter values based on sounding hasil and tank calibration
+            $spmLiter = null;
+            $ftLiter = null;
+
+            // Find SPM tank (dari_tangki)
+            if ($spmHasil !== null && !empty($data['dari_tangki'])) {
+                $spmTank = Tank::where('code', $data['dari_tangki'])->first();
+                if ($spmTank) {
+                    $spmLiter = $spmTank->soundingToLiter(abs($spmHasil));
+                }
+            }
+
+            // Find FT tank (ke_tangki)
+            if ($ftHasil !== null && !empty($data['ke_tangki'])) {
+                $ftTank = Tank::where('code', $data['ke_tangki'])->first();
+                if ($ftTank) {
+                    $ftLiter = $ftTank->soundingToLiter(abs($ftHasil));
+                }
+            }
 
             $transfer = $report->transfers()->create([
                 'dari_tangki'   => $data['dari_tangki'] ?: null,
@@ -507,11 +558,11 @@ class ReportController extends Controller
                 'spm_awal'      => $spmAwal,
                 'spm_akhir'     => $spmAkhir,
                 'spm_hasil'     => $spmHasil,
-                'spm_liter'     => ($spmLiterRaw !== null && $spmLiterRaw !== '' && $spmLiterRaw !== 'XXXX') ? (float) $spmLiterRaw : null,
+                'spm_liter'     => $spmLiter,
                 'ft_awal'       => $ftAwal,
                 'ft_akhir'      => $ftAkhir,
                 'ft_hasil'      => $ftHasil,
-                'ft_liter'      => ($ftLiterRaw !== null && $ftLiterRaw !== '' && $ftLiterRaw !== 'XXXX') ? (float) $ftLiterRaw : null,
+                'ft_liter'      => $ftLiter,
                 'fm_awal'       => $fmAwal,
                 'fm_akhir'      => $fmAkhir,
                 'fm_jumlah'     => $fmJumlah,

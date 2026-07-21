@@ -12,6 +12,23 @@
     <a href="{{ route('reports.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
+@if ($errors->any())
+    <div class="alert alert-danger" style="margin-bottom: 1.5rem;">
+        <strong>Terjadi kesalahan:</strong>
+        <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger" style="margin-bottom: 1.5rem;">
+        {{ session('error') }}
+    </div>
+@endif
+
 <form action="{{ route('reports.store') }}" method="POST" id="reportForm" enctype="multipart/form-data">
     @csrf
 
@@ -31,8 +48,15 @@
 
         <div class="sheet-meta-grid">
             <div class="form-group" style="margin: 0;">
-                <label for="site_name" style="margin-bottom: 4px;">NAMA SITE / LOKASI</label>
-                <input type="text" name="site_name" id="site_name" class="form-control" value="{{ old('site_name') }}" placeholder="Contoh: Sungai Putting, Balikpapan" required>
+                <label for="site_id" style="margin-bottom: 4px;">PILIH SITE</label>
+                <select name="site_id" id="site_id" class="form-control" required>
+                    <option value="">Pilih Site</option>
+                    @foreach($sites as $site)
+                        <option value="{{ $site->id }}" {{ old('site_id') == $site->id ? 'selected' : '' }}>
+                            {{ $site->code }} - {{ $site->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
             <div class="form-group" style="margin: 0;">
                 <label for="date" style="margin-bottom: 4px;">TANGGAL LAPORAN</label>

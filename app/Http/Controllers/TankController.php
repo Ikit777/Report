@@ -29,69 +29,100 @@ class TankController extends Controller
         }
 
         $request->validate([
+            'site_id' => ['nullable', 'exists:sites,id'],
             'date' => ['nullable', 'date'],
         ]);
 
-        // Default to the newest approved report date
-        $selectedDate = $request->input('date')
-            ?: DailyReport::query()->where('status', 'approved')->orderByDesc('date')->value('date');
-        $selectedDate = $selectedDate ? \Carbon\Carbon::parse($selectedDate)->toDateString() : now()->toDateString();
+        // Get all active sites for dropdown
+        $sites = \App\Models\Site::where('is_active', true)->orderBy('code')->get();
 
-        $selectedReport = DailyReport::query()
-            ->where('status', 'approved')
-            ->whereDate('date', $selectedDate)
-            ->with('items')
-            ->first();
+        // Get selected site_id from request (NO DEFAULT)
+        $selectedSiteId = $request->input('site_id');
+        
+        // Default date to today
+        $selectedDate = $request->input('date') ?: now()->toDateString();
+        $selectedDate = \Carbon\Carbon::parse($selectedDate)->toDateString();
 
-        $tanks = Tank::query()
-            ->where('is_active', true)
-            ->orderBy('code')
-            ->orderBy('main_hole')
-            ->get();
+        $selectedReport = null;
+        $selectedSite = null;
+        $tanks = collect();
+        $monitoringRows = collect();
+        $calculatedRows = collect();
+        $totalCapacity = 0;
+        $totalFinalLiters = 0;
+        $totalCanEnter = 0;
+        $averageCanEnter = null;
+        $chartData = [
+            'labels' => [],
+            'capacity' => [],
+            'finalLiters' => [],
+            'availableCapacity' => [],
+        ];
+        
+        // Only load data if site is selected
+        if ($selectedSiteId) {
+            $selectedSite = \App\Models\Site::find($selectedSiteId);
+            
+            $selectedReport = DailyReport::query()
+                ->where('site_id', $selectedSiteId)
+                ->whereDate('date', $selectedDate)
+                ->with('items')
+                ->orderByDesc('status') // Prefer approved/verified over draft if multiple exist for same date
+                ->first();
 
-        $reportItems = $selectedReport
-            ? $selectedReport->items->keyBy('tank_id')
-            : collect();
+            $tanks = Tank::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->orderBy('main_hole')
+                ->get();
 
-        $monitoringRows = $tanks->map(function (Tank $tank) use ($reportItems) {
-            $item = $reportItems->get($tank->id);
-            $capacity = $tank->capacity !== null ? (float) $tank->capacity : null;
-            $finalLiters = $item?->liter_sore !== null ? (float) $item->liter_sore : null;
-            $availableCapacity = $capacity !== null && $finalLiters !== null
-                ? max(0, $capacity - $finalLiters)
+            $reportItems = $selectedReport
+                ? $selectedReport->items->keyBy('tank_id')
+                : collect();
+
+            $monitoringRows = $tanks->map(function (Tank $tank) use ($reportItems) {
+                $item = $reportItems->get($tank->id);
+                $capacity = $tank->capacity !== null ? (float) $tank->capacity : null;
+                $finalLiters = $item?->liter_sore !== null ? (float) $item->liter_sore : null;
+                $availableCapacity = $capacity !== null && $finalLiters !== null
+                    ? max(0, $capacity - $finalLiters)
+                    : null;
+
+                return (object) [
+                    'tank' => $tank,
+                    'item' => $item,
+                    'capacity' => $capacity,
+                    'final_liters' => $finalLiters,
+                    'available_capacity' => $availableCapacity,
+                    'is_over_capacity' => $capacity !== null && $finalLiters !== null && $finalLiters > $capacity,
+                    'fill_percent' => $capacity && $finalLiters !== null
+                        ? min(100, max(0, ($finalLiters / $capacity) * 100))
+                        : null,
+                ];
+            });
+
+            // Only tanks with both a capacity and a final (sore) reading are
+            // included in the daily average and available-volume totals.
+            $calculatedRows = $monitoringRows->filter(fn ($row) => $row->available_capacity !== null);
+            $totalCapacity = $monitoringRows->whereNotNull('capacity')->sum('capacity');
+            $totalFinalLiters = $calculatedRows->sum('final_liters');
+            $totalCanEnter = $calculatedRows->sum('available_capacity');
+            $averageCanEnter = $calculatedRows->count() > 0
+                ? $totalCanEnter / $calculatedRows->count()
                 : null;
 
-            return (object) [
-                'tank' => $tank,
-                'item' => $item,
-                'capacity' => $capacity,
-                'final_liters' => $finalLiters,
-                'available_capacity' => $availableCapacity,
-                'is_over_capacity' => $capacity !== null && $finalLiters !== null && $finalLiters > $capacity,
-                'fill_percent' => $capacity && $finalLiters !== null
-                    ? min(100, max(0, ($finalLiters / $capacity) * 100))
-                    : null,
+            $chartData = [
+                'labels' => $monitoringRows->map(fn ($row) => trim($row->tank->code . ' ' . $row->tank->main_hole))->values(),
+                'capacity' => $monitoringRows->map(fn ($row) => $row->capacity ?? 0)->values(),
+                'finalLiters' => $monitoringRows->map(fn ($row) => $row->final_liters ?? 0)->values(),
+                'availableCapacity' => $monitoringRows->map(fn ($row) => $row->available_capacity ?? 0)->values(),
             ];
-        });
-
-        // Only tanks with both a capacity and a final (sore) reading are
-        // included in the daily average and available-volume totals.
-        $calculatedRows = $monitoringRows->filter(fn ($row) => $row->available_capacity !== null);
-        $totalCapacity = $monitoringRows->whereNotNull('capacity')->sum('capacity');
-        $totalFinalLiters = $calculatedRows->sum('final_liters');
-        $totalCanEnter = $calculatedRows->sum('available_capacity');
-        $averageCanEnter = $calculatedRows->count() > 0
-            ? $totalCanEnter / $calculatedRows->count()
-            : null;
-
-        $chartData = [
-            'labels' => $monitoringRows->map(fn ($row) => trim($row->tank->code . ' ' . $row->tank->main_hole))->values(),
-            'capacity' => $monitoringRows->map(fn ($row) => $row->capacity ?? 0)->values(),
-            'finalLiters' => $monitoringRows->map(fn ($row) => $row->final_liters ?? 0)->values(),
-            'availableCapacity' => $monitoringRows->map(fn ($row) => $row->available_capacity ?? 0)->values(),
-        ];
+        }
 
         return view('tanks.monitoring', compact(
+            'sites',
+            'selectedSiteId',
+            'selectedSite',
             'tanks',
             'selectedDate',
             'selectedReport',
@@ -356,6 +387,13 @@ class TankController extends Controller
 
     public function getVolume(Request $request, $tank_id)
     {
+        $user = Auth::user();
+        
+        // For Fuelman role, always return null (will show as XXXX in form)
+        if ($user && $user->isFuelman()) {
+            return response()->json(['volume' => null, 'hidden' => true]);
+        }
+        
         $sounding = $request->query('sounding');
         
         if ($sounding === null || $sounding === '') {

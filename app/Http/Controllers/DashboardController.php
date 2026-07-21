@@ -73,25 +73,21 @@ class DashboardController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
 
-            // Total Fuel usage (sum of fm_pakai for the past 30 days)
-            $totalUsage = DailyReportItem::whereHas('dailyReport', function($q) {
-                    $q->where('status', 'approved');
-                })
-                ->sum('fm_pakai');
+            // Total Fuel usage (sum of fm_pakai for all reports including draft)
+            $totalUsage = DailyReportItem::sum('fm_pakai');
 
-            // Sounding status for active tanks (latest approved report values)
-            $latestApprovedReport = DailyReport::where('status', 'approved')
-                ->orderBy('date', 'desc')
+            // Sounding status for active tanks (latest report values, any status)
+            $latestReport = DailyReport::orderBy('date', 'desc')
                 ->first();
 
             $tankStatus = [];
-            if ($latestApprovedReport) {
+            if ($latestReport) {
                 $tankStatus = DailyReportItem::with('tank')
-                    ->where('daily_report_id', $latestApprovedReport->id)
+                    ->where('daily_report_id', $latestReport->id)
                     ->get();
             }
 
-            return view('dashboard', compact('stats', 'recentReports', 'pendingReports', 'totalUsage', 'tankStatus', 'latestApprovedReport'));
+            return view('dashboard', compact('stats', 'recentReports', 'pendingReports', 'totalUsage', 'tankStatus', 'latestReport'));
         }
 
         abort(403);

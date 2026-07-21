@@ -28,6 +28,62 @@
         html[data-theme="dark"] {
             --border-color: rgba(255, 255, 255, 0.1);
         }
+
+        /* FORCE PRINT STYLES - Hide mobile header and sidebar */
+        @media print {
+            .mobile-header,
+            .sidebar,
+            .sidebar-overlay,
+            .btn,
+            .alert,
+            .content-header,
+            .pagination,
+            nav,
+            footer,
+            .no-print {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            
+            body {
+                background: white !important;
+            }
+
+            /* EXCEPTION: Preserve report header layout and logos */
+            .sheet-header-container {
+                display: grid !important;
+                grid-template-columns: 120px 1fr 120px !important;
+                align-items: center !important;
+                width: 100% !important;
+                height: auto !important;
+                visibility: visible !important;
+            }
+
+            .sheet-logo-left,
+            .sheet-logo-right,
+            .sheet-title-area {
+                display: flex !important;
+                visibility: visible !important;
+                height: auto !important;
+                width: auto !important;
+            }
+
+            .sheet-logo-left img,
+            .sheet-logo-right img {
+                display: block !important;
+                visibility: visible !important;
+                height: 40px !important;
+                width: auto !important;
+                max-height: 40px !important;
+                object-fit: contain !important;
+            }
+        }
     </style>
     @yield('styles')
 </head>
@@ -130,6 +186,15 @@
                     </li>
                 @endif
                 @if(Auth::user()->isSpv())
+                <li class="nav-item {{ Route::is('sites.index') || Route::is('sites.create') || Route::is('sites.edit') ? 'active' : '' }}">
+                    <a href="{{ route('sites.index') }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                        <span>Kelola Site</span>
+                    </a>
+                </li>
                 <li class="nav-item {{ Route::is('users.index') ? 'active' : '' }}">
                     <a href="{{ route('users.index') }}">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

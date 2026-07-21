@@ -330,14 +330,66 @@
 
         /* Header logos */
         .sheet-header-container {
+            display: grid !important;
+            grid-template-columns: 120px 1fr 120px !important;
+            align-items: center !important;
             margin-bottom: 0.5rem !important;
+            width: 100% !important;
+            gap: 1rem !important;
+        }
+
+        .sheet-logo-left,
+        .sheet-logo-right {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .sheet-logo-left {
+            justify-content: flex-start !important;
+        }
+
+        .sheet-logo-right {
+            justify-content: flex-end !important;
+            flex-direction: column !important;
+        }
+
+        .sheet-logo-left img,
+        .sheet-logo-right img {
+            height: 40px !important;
+            width: auto !important;
+            max-width: 100% !important;
+            object-fit: contain !important;
+        }
+
+        .sheet-title-area {
+            text-align: center !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         .sheet-title-area h2 {
             font-size: 12pt !important;
+            font-weight: 800 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1.2 !important;
+            display: block !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
         }
         .sheet-title-area h3 {
             font-size: 8pt !important;
+            font-weight: 600 !important;
+            margin-top: 0.25rem !important;
+            margin-bottom: 0 !important;
+            padding: 0 !important;
+            line-height: 1.2 !important;
+            display: block !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
         }
 
         .sheet-meta-row {
@@ -352,7 +404,7 @@
 <div class="content-header no-print">
     <div>
         <h1 class="page-title">Detail Laporan Harian</h1>
-        <p class="page-subtitle">Site {{ $report->site_name }} | Tanggal: {{ $report->date->format('d-m-Y') }}</p>
+        <p class="page-subtitle">Site {{ $report->site->name }} | Tanggal: {{ $report->date->format('d-m-Y') }}</p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
         <a href="{{ route('reports.index') }}" class="btn btn-secondary">Kembali</a>
@@ -453,7 +505,7 @@
         <!-- Header Text -->
         <div class="sheet-title-area">
             <h2>LAPORAN HARIAN KEGIATAN FUELMAN</h2>
-            <h3>WAREHOUSE & INVENTORY SITE {{ strtoupper($report->site_name) }}</h3>
+            <h3>WAREHOUSE & INVENTORY SITE {{ strtoupper($report->site->name) }}</h3>
         </div>
         
         <!-- Right text brand -->
@@ -562,7 +614,13 @@
                                     {{ $item->sounding_pagi !== null ? number_format($item->sounding_pagi, 1, ',', '.') : '' }}
                                 </td>
                                 <td class="val-liter" style="text-align: right; padding-right: 8px;">
-                                    {{ $item->liter_pagi !== null ? number_format($item->liter_pagi, 0, ',', '.') : 'XXXX' }}
+                                    @if(Auth::user()->isFuelman())
+                                        XXXX
+                                    @elseif($item->liter_pagi !== null)
+                                        {{ number_format($item->liter_pagi, 0, ',', '.') }}
+                                    @else
+                                        XXXX
+                                    @endif
                                 </td>
                                 <td style="text-align: center;">
                                     {{ $item->jam_pagi ? \Carbon\Carbon::parse($item->jam_pagi)->format('H:i') : '' }}
@@ -574,7 +632,13 @@
                                     {{ $item->sounding_sore !== null ? number_format($item->sounding_sore, 1, ',', '.') : '' }}
                                 </td>
                                 <td class="val-liter" style="text-align: right; padding-right: 8px;">
-                                    {{ $item->liter_sore !== null ? number_format($item->liter_sore, 0, ',', '.') : 'XXXX' }}
+                                    @if(Auth::user()->isFuelman())
+                                        XXXX
+                                    @elseif($item->liter_sore !== null)
+                                        {{ number_format($item->liter_sore, 0, ',', '.') }}
+                                    @else
+                                        XXXX
+                                    @endif
                                 </td>
                                 <td style="text-align: center;">
                                     {{ $item->jam_sore ? \Carbon\Carbon::parse($item->jam_sore)->format('H:i') : '' }}
@@ -767,7 +831,13 @@
                         <td style="text-align: center;">{{ $transfer->spm_akhir !== null ? number_format($transfer->spm_akhir, 1, ',', '.') : '' }}</td>
                         <td style="text-align: center; font-weight: 500;">{{ $transfer->spm_hasil !== null ? number_format($transfer->spm_hasil, 1, ',', '.') : '' }}</td>
                         <td class="val-liter" style="text-align: right; padding-right: 8px;">
-                            {{ $transfer->spm_liter !== null ? number_format($transfer->spm_liter, 0, ',', '.') : 'XXXX' }}
+                            @if(Auth::user()->isFuelman())
+                                XXXX
+                            @elseif($transfer->spm_liter !== null)
+                                {{ number_format($transfer->spm_liter, 0, ',', '.') }}
+                            @else
+                                XXXX
+                            @endif
                         </td>
                         
                         <!-- FT -->
@@ -775,7 +845,13 @@
                         <td style="text-align: center;">{{ $transfer->ft_akhir !== null ? number_format($transfer->ft_akhir, 1, ',', '.') : '' }}</td>
                         <td style="text-align: center; font-weight: 500;">{{ $transfer->ft_hasil !== null ? number_format($transfer->ft_hasil, 1, ',', '.') : '' }}</td>
                         <td class="val-liter" style="text-align: right; padding-right: 8px;">
-                            {{ $transfer->ft_liter !== null ? number_format($transfer->ft_liter, 0, ',', '.') : 'XXXX' }}
+                            @if(Auth::user()->isFuelman())
+                                XXXX
+                            @elseif($transfer->ft_liter !== null)
+                                {{ number_format($transfer->ft_liter, 0, ',', '.') }}
+                            @else
+                                XXXX
+                            @endif
                         </td>
                         
                         <!-- FM -->
@@ -995,22 +1071,40 @@
             <p style="margin: 0 0 1rem; color: #64748b;">Dokumentasi Laporan Harian Fuelman</p>
             
             @php
-                $attachments = $report->attachments->sortBy(fn ($attachment) => $attachment->section . ':' . $attachment->attachment_key);
-                $chunks = $attachments->chunk(2); // Split into groups of 2
+                // Group by section and attachment_key to get photos for same context
+                $groupedAttachments = $report->attachments
+                    ->sortBy(fn ($attachment) => $attachment->section . ':' . $attachment->attachment_key)
+                    ->groupBy(fn ($attachment) => $attachment->section . ':' . $attachment->attachment_key);
             @endphp
             
-            @foreach($chunks as $chunk)
+            @foreach($groupedAttachments as $groupKey => $photos)
+                @php
+                    $firstPhoto = $photos->first();
+                    $photoCount = $photos->count();
+                @endphp
+                
                 <div class="photo-card" style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 1rem; background: white; margin-bottom: 1rem;">
+                    <!-- Header untuk group foto ini -->
+                    <div style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-size: 10pt; font-weight: 700; color: #1e293b;">
+                            Bagian {{ $firstPhoto->section }} — {{ $firstPhoto->section === 'A' ? 'Laporan Harian Main Tank' : 'Transfer Solar' }}
+                        </div>
+                        <div style="font-size: 8.5pt; color: #475569; margin-top: 0.25rem;">
+                            {{ $firstPhoto->context }}
+                        </div>
+                    </div>
+                    
                     <div style="display: flex; gap: 1rem;">
-                        @foreach($chunk as $attachment)
+                        @foreach($photos as $index => $attachment)
                             <div class="photo-item" style="flex: 1;">
-                                <div style="font-size: 9pt; font-weight: 700; color: #1e293b; margin-bottom: 0.25rem;">Bagian {{ $attachment->section }} — {{ $attachment->section === 'A' ? 'Laporan Harian Main Tank' : 'Transfer Solar' }}</div>
-                                <div style="font-size: 8.5pt; color: #475569; margin-bottom: 0.5rem;">{{ $attachment->context }}</div>
-                                <img src="{{ asset('storage/' . $attachment->path) }}" alt="Lampiran {{ $attachment->context }}" style="display: block; width: 100%; height: 280px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc;">
+                                <div style="font-size: 8.5pt; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">
+                                    Foto {{ $index + 1 }}
+                                </div>
+                                <img src="{{ asset('storage/' . $attachment->path) }}" alt="Foto {{ $index + 1 }}" style="display: block; width: 100%; height: 280px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc;">
                             </div>
                         @endforeach
                         
-                        @if($chunk->count() === 1)
+                        @if($photoCount === 1)
                             <div style="flex: 1;"></div>
                         @endif
                     </div>

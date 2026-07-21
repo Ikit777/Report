@@ -1041,7 +1041,7 @@ body.dark-mode .brand-logo {
 
 /* Footer / print custom */
 @media print {
-    .sidebar, .btn, .review-panel, .alert {
+    .sidebar, .btn, .review-panel, .alert, .navbar, .header, .content-header, .pagination, nav, footer, .no-print, .mobile-header {
         display: none !important;
     }
     .main-content {

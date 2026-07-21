@@ -10,7 +10,7 @@ class DailyReport extends Model
 {
     protected $fillable = [
         'date',
-        'site_name',
+        'site_id',
         'status',
         'fuelman_id',
         'gl_id',
@@ -44,6 +44,11 @@ class DailyReport extends Model
     public function spv(): BelongsTo
     {
         return $this->belongsTo(User::class, 'spv_id');
+    }
+
+    public function site(): BelongsTo
+    {
+        return $this->belongsTo(Site::class);
     }
 
     public function items(): HasMany

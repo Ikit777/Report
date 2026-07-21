@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SiteController;
 use App\Http\Controllers\TankController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -76,6 +77,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/tanks/{id}/edit', [TankController::class, 'edit'])->name('tanks.edit');
         Route::put('/tanks/{id}', [TankController::class, 'update'])->name('tanks.update');
         Route::delete('/tanks/{id}', [TankController::class, 'destroy'])->name('tanks.destroy');
+        
+        // Sites CRUD
+        Route::get('/sites', [SiteController::class, 'index'])->name('sites.index');
+        Route::get('/sites/create', [SiteController::class, 'create'])->name('sites.create');
+        Route::post('/sites', [SiteController::class, 'store'])->name('sites.store');
+        Route::get('/sites/{id}/edit', [SiteController::class, 'edit'])->name('sites.edit');
+        Route::put('/sites/{id}', [SiteController::class, 'update'])->name('sites.update');
+        Route::delete('/sites/{id}', [SiteController::class, 'destroy'])->name('sites.destroy');
     });
 
     // API to fetch volume from sounding data

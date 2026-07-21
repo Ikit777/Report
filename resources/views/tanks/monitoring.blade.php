@@ -105,22 +105,65 @@
 <div class="card-table-container" style="margin-top:1.5rem;">
     <form method="GET" action="{{ route('tanks.monitoring') }}" class="monitoring-filter">
         <div class="form-group">
-            <label for="monitoring-date">Tanggal monitoring</label>
-            <input id="monitoring-date" name="date" type="date" class="form-control" value="{{ $selectedDate }}">
+            <label for="monitoring-site">Site <span style="color: var(--danger);">*</span></label>
+            <select id="monitoring-site" name="site_id" class="form-control" required>
+                <option value="">-- Pilih Site --</option>
+                @foreach($sites as $site)
+                    <option value="{{ $site->id }}" {{ $selectedSiteId == $site->id ? 'selected' : '' }}>
+                        {{ $site->code }} - {{ $site->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-        <button type="submit" class="btn btn-primary">Tampilkan</button>
+        <div class="form-group">
+            <label for="monitoring-date">Tanggal Monitoring</label>
+            <input id="monitoring-date" name="date" type="date" class="form-control" value="{{ $selectedDate }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Tampilkan Data</button>
     </form>
-    <div class="monitoring-note">
-        <strong>Info:</strong>
-        <span>Monitoring hanya menampilkan laporan yang sudah disetujui (Approved) oleh Supervisor. Laporan dengan status Draft, Diajukan, Diverifikasi, atau Ditolak tidak akan ditampilkan.</span>
-    </div>
+    @if(!$selectedSiteId)
+        <div class="monitoring-note" style="background: #fef3c7; border-color: #fbbf24; color: #92400e;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span><strong>Pilih Site dan Tanggal:</strong> Silakan pilih site dan tanggal terlebih dahulu untuk menampilkan data monitoring tangki.</span>
+        </div>
+    @else
+        <div class="monitoring-note">
+            <strong>Info:</strong>
+            <span>Monitoring menampilkan semua laporan termasuk yang berstatus Draft. Untuk data yang lebih akurat, pilih tanggal dengan laporan yang sudah Approved.</span>
+        </div>
+    @endif
 </div>
 
+@if($selectedSiteId)
 <div class="grid-stats" style="margin-top:1.5rem;">
-    <div class="stat-card primary"><span class="stat-title">Tanggal Monitoring</span><span class="stat-value" style="font-size:1.45rem;">{{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('d M Y') }}</span></div>
-    <div class="stat-card info"><span class="stat-title">Total Kapasitas Tangki</span><span class="stat-value">{{ number_format($totalCapacity, 0, ',', '.') }} <small>L</small></span></div>
-    <div class="stat-card success"><span class="stat-title">Total Maks. Bisa Masuk</span><span class="stat-value">{{ number_format($totalCanEnter, 0, ',', '.') }} <small>L</small></span></div>
-    <div class="stat-card warning"><span class="stat-title">Rata-rata Bisa Masuk / Tangki</span><span class="stat-value">{{ $averageCanEnter !== null ? number_format($averageCanEnter, 0, ',', '.') : '-' }} <small>{{ $averageCanEnter !== null ? 'L' : '' }}</small></span></div>
+    <div class="stat-card primary" style="align-items: flex-start;">
+        <span class="stat-title">Site Monitoring</span>
+        @if($selectedSite)
+            <span class="stat-value" style="font-size:1.2rem;">{{ $selectedSite->code }} - {{ $selectedSite->name }}</span>
+        @else
+            <span class="stat-value" style="font-size:1rem; color: var(--text-muted);">Pilih Site</span>
+        @endif
+    </div>
+    <div class="stat-card info">
+        <span class="stat-title">Tanggal Monitoring</span>
+        <span class="stat-value" style="font-size:1.2rem;">{{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('d M Y') }}</span>
+        @if($selectedReport)
+            <span class="badge badge-{{ $selectedReport->status }}" style="margin-top: 0.5rem; font-size: 0.7rem; padding: 0.3rem 0.7rem; font-weight: 700; letter-spacing: 0.3px;">
+                @if($selectedReport->status === 'draft') DRAFT
+                @elseif($selectedReport->status === 'submitted') SUBMITTED
+                @elseif($selectedReport->status === 'verified') VERIFIED
+                @elseif($selectedReport->status === 'approved') APPROVED
+                @elseif($selectedReport->status === 'rejected') REJECTED
+                @endif
+            </span>
+        @endif
+    </div>
+    <div class="stat-card success"><span class="stat-title">Total Kapasitas Tangki</span><span class="stat-value">{{ number_format($totalCapacity, 0, ',', '.') }} <small>L</small></span></div>
+    <div class="stat-card warning"><span class="stat-title">Total Maks. Bisa Masuk</span><span class="stat-value">{{ number_format($totalCanEnter, 0, ',', '.') }} <small>L</small></span></div>
 </div>
 
 <div class="monitoring-grid">
@@ -145,17 +188,40 @@
                 </div>
             </div>
         @else
-            <div class="empty-monitoring"><strong>Data Monitoring Belum Tersedia.</strong><br>Belum ada laporan yang disetujui untuk tanggal ini. Pilih tanggal lain atau tunggu Supervisor menyetujui laporan.</div>
+            <div class="empty-monitoring"><strong>Data Monitoring Belum Tersedia.</strong><br>Belum ada laporan untuk tanggal ini. Pilih tanggal lain atau buat laporan baru.</div>
         @endif
     </section>
 
     <section class="chart-card">
         <h2 class="card-title">Ringkasan Perhitungan Harian</h2>
         <div class="metric-list">
-            <div class="metric-item"><span class="metric-label">Status laporan</span><strong class="badge badge-{{ $selectedReport?->status ?? 'draft' }}">{{ $selectedReport ? ucfirst($selectedReport->status) : 'Belum ada laporan' }}</strong></div>
-            <div class="metric-item"><span class="metric-label">Tangki dengan data akhir sore</span><span class="metric-value">{{ $calculatedRows->count() }} dari {{ $tanks->count() }} tangki</span></div>
-            <div class="metric-item"><span class="metric-label">Total liter sore</span><span class="metric-value">{{ number_format($totalFinalLiters, 0, ',', '.') }} L</span></div>
-            <div class="metric-item"><span class="metric-label">Rumus kapasitas tersedia</span><span class="metric-value">Kapasitas − liter sore</span></div>
+            <div class="metric-item">
+                <span class="metric-label">Status Laporan</span>
+                @if($selectedReport)
+                    <span class="badge badge-{{ $selectedReport->status }}" style="font-size: 0.7rem; padding: 0.35rem 0.75rem; border-radius: 4px; font-weight: 700;">
+                        @if($selectedReport->status === 'draft') DRAFT
+                        @elseif($selectedReport->status === 'submitted') SUBMITTED
+                        @elseif($selectedReport->status === 'verified') VERIFIED
+                        @elseif($selectedReport->status === 'approved') APPROVED
+                        @elseif($selectedReport->status === 'rejected') REJECTED
+                        @endif
+                    </span>
+                @else
+                    <span class="metric-value" style="color: var(--text-muted); font-size: 0.85rem;">Tidak Ada</span>
+                @endif
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Tangki Terdata</span>
+                <span class="metric-value">{{ $calculatedRows->count() }}<span style="color: var(--text-muted); font-weight: 500;"> / {{ $tanks->count() }}</span></span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Total Liter Sore</span>
+                <span class="metric-value">{{ number_format($totalFinalLiters, 0, ',', '.') }} L</span>
+            </div>
+            <div class="metric-item" style="border-bottom: 0; padding-bottom: 0;">
+                <span class="metric-label">Perhitungan</span>
+                <span class="metric-value" style="font-size: 0.8rem; color: var(--text-secondary);">Kapasitas − Liter Sore</span>
+            </div>
         </div>
     </section>
 </div>
@@ -177,7 +243,15 @@
                         <td>
                             @if($row->fill_percent !== null)<div style="display:flex;align-items:center;gap:.65rem;"><div class="capacity-track"><div class="capacity-fill" style="width:{{ $row->fill_percent }}%;background:{{ $row->is_over_capacity ? 'var(--danger)' : 'var(--primary)' }}"></div></div><span>{{ number_format($row->fill_percent, 1, ',', '.') }}%</span></div>@else - @endif
                         </td>
-                        <td>@if($row->is_over_capacity)<span class="badge badge-rejected">Melebihi kapasitas</span>@elseif($row->final_liters !== null && $row->capacity !== null)<span class="badge badge-approved">Tercatat</span>@else<span class="badge badge-draft">Belum lengkap</span>@endif</td>
+                        <td>
+                            @if($row->is_over_capacity)
+                                <span class="badge badge-rejected" style="font-size: 0.7rem; padding: 0.35rem 0.65rem; border-radius: 4px;">OVER</span>
+                            @elseif($row->final_liters !== null && $row->capacity !== null)
+                                <span class="badge badge-approved" style="font-size: 0.7rem; padding: 0.35rem 0.65rem; border-radius: 4px;">LENGKAP</span>
+                            @else
+                                <span class="badge badge-draft" style="font-size: 0.7rem; padding: 0.35rem 0.65rem; border-radius: 4px;">KOSONG</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr><td colspan="9" style="text-align:center;color:var(--text-muted);">Belum ada tangki aktif untuk dimonitor.</td></tr>
@@ -186,4 +260,26 @@
         </table>
     </div>
 </div>
+@else
+<!-- Placeholder when no site selected -->
+<div style="margin-top: 3rem; text-align: center; padding: 4rem 2rem; background: var(--bg-secondary); border-radius: var(--radius-md); border: 2px dashed var(--border-color);">
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin: 0 auto 1.5rem;">
+        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+        <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path>
+    </svg>
+    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem;">Monitoring Tangki BBM</h3>
+    <p style="font-size: 0.95rem; color: var(--text-secondary); margin: 0 0 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+        Silakan pilih <strong>Site</strong> dan <strong>Tanggal</strong> pada filter di atas, kemudian klik <strong>"Tampilkan Data"</strong> untuk melihat monitoring kapasitas tangki.
+    </p>
+    <div style="display: inline-flex; gap: 1rem; align-items: center; padding: 1rem 1.5rem; background: #eff6ff; border-radius: var(--radius-sm); border: 1px solid #bae6fd;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span style="font-size: 0.9rem; color: #075985; font-weight: 500;">Data akan tampil setelah Anda memilih site dan tanggal</span>
+    </div>
+</div>
+@endif
 @endsection

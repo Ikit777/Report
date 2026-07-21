@@ -32,8 +32,15 @@
 
         <div class="sheet-meta-grid">
             <div class="form-group" style="margin: 0;">
-                <label for="site_name" style="margin-bottom: 4px;">NAMA SITE / LOKASI</label>
-                <input type="text" name="site_name" id="site_name" class="form-control" value="{{ old('site_name', $report->site_name) }}" placeholder="Contoh: Sungai Putting" required>
+                <label for="site_id" style="margin-bottom: 4px;">PILIH SITE</label>
+                <select name="site_id" id="site_id" class="form-control" required>
+                    <option value="">Pilih Site</option>
+                    @foreach($sites as $site)
+                        <option value="{{ $site->id }}" {{ old('site_id', $report->site_id) == $site->id ? 'selected' : '' }}>
+                            {{ $site->code }} - {{ $site->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
             <div class="form-group" style="margin: 0;">
                 <label for="date" style="margin-bottom: 4px;">TANGGAL LAPORAN</label>
