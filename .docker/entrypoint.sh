@@ -136,6 +136,12 @@ else
 echo "  DATABASE   : SQLite File"
 fi
 echo "=============================="
+echo "Storage Config:"
+echo "  FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}"
+echo "  AWS_ENDPOINT   : ${AWS_ENDPOINT:-not set}"
+echo "  AWS_BUCKET     : ${AWS_BUCKET:-not set}"
+echo "  AWS_KEY        : ${AWS_ACCESS_KEY_ID:+***${AWS_ACCESS_KEY_ID: -4}}"
+echo "=============================="
 
 # =============================================
 # STEP 3: Generate APP_KEY jika belum diset
@@ -149,6 +155,9 @@ fi
 # STEP 4: Clear Laravel caches before connecting to the configured database
 # =============================================
 php artisan optimize:clear
+php artisan route:clear
+php artisan config:clear
+php artisan view:clear
 
 # =============================================
 # STEP 5: Wait for PostgreSQL to be ready
