@@ -627,6 +627,7 @@ class ReportController extends Controller
                     'filename' => $photo->getClientOriginalName(),
                     'size' => $photo->getSize(),
                     'section' => $section,
+                    'report_id' => $report->id,
                 ]);
                 
                 $path = $photo->store("report-attachments/{$report->id}/section-{$section}", $disk);
@@ -634,6 +635,7 @@ class ReportController extends Controller
                 \Log::info("Photo uploaded successfully", [
                     'path' => $path,
                     'disk' => $disk,
+                    'report_id' => $report->id,
                 ]);
                 
                 $report->attachments()->create([
@@ -647,8 +649,11 @@ class ReportController extends Controller
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                     'disk' => $disk ?? 'unknown',
+                    'report_id' => $report->id,
+                    'section' => $section,
                 ]);
-                throw $e;
+                // Re-throw to abort transaction
+                throw new \RuntimeException("Gagal upload foto: " . $e->getMessage(), 0, $e);
             }
         }
     }
