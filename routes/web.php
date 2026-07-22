@@ -71,6 +71,45 @@ Route::get('/test-storage', function () {
     }
 });
 
+// Test image URL generation from actual attachments
+Route::get('/test-image-urls', function () {
+    try {
+        $attachments = \App\Models\DailyReportAttachment::with('dailyReport')->latest()->take(5)->get();
+        
+        $results = [];
+        foreach ($attachments as $attachment) {
+            $results[] = [
+                'id' => $attachment->id,
+                'report_id' => $attachment->daily_report_id,
+                'report_date' => $attachment->dailyReport->date->format('Y-m-d'),
+                'path' => $attachment->path,
+                'generated_url' => $attachment->getPublicUrl(),
+                'context' => $attachment->context,
+            ];
+        }
+        
+        return response()->json([
+            'status' => 'success',
+            'count' => count($results),
+            'config' => [
+                'REPORT_ATTACHMENT_DISK' => config('filesystems.report_attachment_disk'),
+                'S3_URL' => config('filesystems.disks.s3.url'),
+                'S3_PUBLIC_URL' => env('S3_PUBLIC_URL', 'NOT SET'),
+                'AWS_URL' => env('AWS_URL', 'NOT SET'),
+                'AWS_ENDPOINT' => config('filesystems.disks.s3.endpoint'),
+                'AWS_BUCKET' => config('filesystems.disks.s3.bucket'),
+            ],
+            'attachments' => $results,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'trace' => explode("\n", $e->getTraceAsString()),
+        ], 500);
+    }
+})->middleware('auth');
+
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
