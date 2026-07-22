@@ -108,6 +108,9 @@ SESSION_LIFETIME=120
 CACHE_STORE="${CACHE_STORE:-database}"
 QUEUE_CONNECTION=sync
 FILESYSTEM_DISK="${FILESYSTEM_DISK:-local}"
+# Railway does not start the MinIO container from docker-compose.yml. Use the
+# application's public disk until a real S3/MinIO service is configured.
+REPORT_ATTACHMENT_DISK="${REPORT_ATTACHMENT_DISK:-public}"
 AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-}"
 AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"

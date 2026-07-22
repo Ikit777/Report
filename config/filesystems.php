@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Daily Report Attachment Disk
+    |--------------------------------------------------------------------------
+    |
+    | Keep report photos independent from the application's general filesystem.
+    | Railway does not create the MinIO service declared in docker-compose.yml,
+    | so a fresh Railway deployment must safely use the public disk. Set
+    | REPORT_ATTACHMENT_DISK=s3 only after a reachable S3/MinIO service exists.
+    |
+    */
+
+    'report_attachment_disk' => env('REPORT_ATTACHMENT_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

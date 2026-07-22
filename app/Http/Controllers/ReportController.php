@@ -171,7 +171,7 @@ class ReportController extends Controller
                 'request' => $request->all(),
             ]);
             return back()->withInput()->withErrors($e->errors());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             \Log::error('Failed to store report', [
                 'error' => $e->getMessage(),
@@ -662,7 +662,7 @@ class ReportController extends Controller
                     'context' => $context,
                     'path' => $path,
                 ]);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 \Log::error("Failed to upload photo", [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
@@ -696,7 +696,7 @@ class ReportController extends Controller
     /** Local storage is private; use Laravel's public disk for browser-visible attachments. */
     private function attachmentDisk(): string
     {
-        $disk = config('filesystems.default');
+        $disk = config('filesystems.report_attachment_disk', 'public');
 
         return $disk === 'local' ? 'public' : $disk;
     }
