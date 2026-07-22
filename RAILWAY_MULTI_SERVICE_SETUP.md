@@ -34,7 +34,8 @@ Solusinya: Deploy sebagai **3 services terpisah** dalam 1 project.
 9. **Tab "Settings"** → **"Networking"**
    - Expose Port: `9000` (MinIO API)
    - Generate Domain (akan dapat URL seperti: `minio-production-xxxx.up.railway.app`)
-10. **Deploy**
+10. **Tab "Volumes"** → tambahkan volume dengan mount path: `/data`
+11. **Deploy**
 
 ---
 
@@ -65,16 +66,22 @@ Setelah MinIO service running:
 2. **Tab "Variables"** → Add/Update:
    ```
    FILESYSTEM_DISK=s3
+   REPORT_ATTACHMENT_DISK=s3
    AWS_ACCESS_KEY_ID=minioadmin
    AWS_SECRET_ACCESS_KEY=minioadmin123
    AWS_DEFAULT_REGION=us-east-1
    AWS_BUCKET=daily-report
-   AWS_ENDPOINT=https://minio-production-xxxx.up.railway.app
-   AWS_URL=https://minio-production-xxxx.up.railway.app/daily-report
+   AWS_ENDPOINT=http://${{minio.RAILWAY_PRIVATE_DOMAIN}}:9000
+   AWS_URL=https://${{minio.RAILWAY_PUBLIC_DOMAIN}}/daily-report
    AWS_USE_PATH_STYLE_ENDPOINT=true
    ```
    
-   **PENTING:** Ganti `minio-production-xxxx.up.railway.app` dengan **actual MinIO domain** dari Step 2.
+   **PENTING:** `AWS_ENDPOINT` adalah koneksi Laravel → MinIO dan wajib
+   memakai private domain. `AWS_URL` hanya untuk URL foto yang dibuka browser,
+   sehingga memakai public domain dengan `https`.
+
+   Jika service MinIO Anda bernama selain `minio`, ganti namespace referensi
+   `${{minio...}}` dengan nama service tersebut.
 
 3. **Save** → Railway akan auto-redeploy
 
@@ -144,7 +151,9 @@ Railway Project: daily-report
 
 ### Upload foto masih gagal
 - Check Railway logs untuk error message
-- Test MinIO: `curl https://minio-production-xxxx.up.railway.app/minio/health/live`
+- Test MinIO public API: `curl https://minio-production-xxxx.up.railway.app/minio/health/live`
+- Pastikan `AWS_ENDPOINT` **bukan** domain `*.up.railway.app`; gunakan
+  `http://${{minio.RAILWAY_PRIVATE_DOMAIN}}:9000`.
 - Check bucket permission: harus public/download
 
 ---

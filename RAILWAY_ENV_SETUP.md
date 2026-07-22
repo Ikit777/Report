@@ -19,14 +19,15 @@ AWS_ACCESS_KEY_ID=<MINIO_ROOT_USER>
 AWS_SECRET_ACCESS_KEY=<MINIO_ROOT_PASSWORD>
 AWS_DEFAULT_REGION=us-east-1
 AWS_BUCKET=daily-report
-AWS_ENDPOINT=https://minio-production-xxxx.up.railway.app
-AWS_URL=https://minio-production-xxxx.up.railway.app/daily-report
+AWS_ENDPOINT=http://${{minio.RAILWAY_PRIVATE_DOMAIN}}:9000
+AWS_URL=https://${{minio.RAILWAY_PUBLIC_DOMAIN}}/daily-report
 AWS_USE_PATH_STYLE_ENDPOINT=true
 AWS_CONNECT_TIMEOUT=5
 AWS_REQUEST_TIMEOUT=20
 ```
 
-Ganti domain serta kredensial dengan nilai MinIO Anda. Buat bucket
+Ganti namespace `minio` jika nama service MinIO Anda berbeda. Tambahkan
+Railway Volume pada service MinIO dengan mount path `/data`, lalu buat bucket
 `daily-report` dan atur akses baca publik agar foto dapat ditampilkan.
 
 Jika belum memakai MinIO, jangan set `REPORT_ATTACHMENT_DISK=s3`; biarkan
