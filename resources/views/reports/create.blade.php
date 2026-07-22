@@ -1015,77 +1015,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const addSelectedPhotos = async (input) => {
         const cell = input.closest('.photo-upload-cell');
-        const list = cell.querySelector('[data-photo-selected]');
         const availableSlots = Math.max(0, 2 - cell.querySelectorAll('.saved-photo-card').length);
+        
+        // TEMPORARILY DISABLE COMPRESSION - just use original files
         const newFiles = Array.from(input.files).slice(0, availableSlots);
+        input._selectedPhotos = [...(input._selectedPhotos ?? []), ...newFiles];
+        renderSelectedPhotos(input);
+        return;
         
+        // TODO: Re-enable compression after fixing validation
+        /* 
+        const list = cell.querySelector('[data-photo-selected]');
         if (newFiles.length === 0) return;
-        
-        // Show loading
-        const loadingItem = document.createElement('div');
-        loadingItem.className = 'photo-selected-item';
-        loadingItem.style.color = '#666';
-        loadingItem.textContent = '⏳ Mengompres gambar...';
-        list.appendChild(loadingItem);
-        
-        try {
-            const compressedFiles = [];
-            
-            for (const file of newFiles) {
-                if (file.type.startsWith('image/')) {
-                    try {
-                        // Compress with browser-image-compression library
-                        const options = {
-                            maxSizeMB: 0.8,          // max 800KB
-                            maxWidthOrHeight: 1920,   // max dimension
-                            useWebWorker: true,       // faster with worker
-                            fileType: 'image/jpeg',   // convert to JPEG
-                            initialQuality: 0.85      // good quality
-                        };
-                        
-                        const compressed = await imageCompression(file, options);
-                        
-                        // Change filename extension to .jpg
-                        const newFileName = file.name.replace(/\.(png|webp|jpeg|jpg)$/i, '.jpg');
-                        
-                        const finalFile = new File([compressed], newFileName, {
-                            type: 'image/jpeg',
-                            lastModified: Date.now()
-                        });
-                        
-                        // Log compression results
-                        console.log('Image compressed:', {
-                            original: (file.size / 1024).toFixed(2) + ' KB',
-                            compressed: (finalFile.size / 1024).toFixed(2) + ' KB',
-                            ratio: ((1 - finalFile.size / file.size) * 100).toFixed(1) + '% smaller'
-                        });
-                        
-                        compressedFiles.push(finalFile);
-                    } catch (err) {
-                        console.error('Compression failed for', file.name, '- using original', err);
-                        // If compression fails, use original file
-                        compressedFiles.push(file);
-                    }
-                } else {
-                    compressedFiles.push(file);
-                }
-            }
-            
-            // Remove loading
-            list.removeChild(loadingItem);
-            
-            // Add compressed files
-            input._selectedPhotos = [...(input._selectedPhotos ?? []), ...compressedFiles];
-            renderSelectedPhotos(input);
-        } catch (error) {
-            console.error('Compression error:', error);
-            if (list.contains(loadingItem)) {
-                list.removeChild(loadingItem);
-            }
-            // Fallback: use original files without compression
-            input._selectedPhotos = [...(input._selectedPhotos ?? []), ...newFiles];
-            renderSelectedPhotos(input);
-        }
+        ... compression code ...
+        */
     };
 
     document.addEventListener('change', async (event) => {
