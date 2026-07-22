@@ -9,7 +9,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    // If already logged in, go to dashboard
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+    // Otherwise show landing page
+    return view('welcome');
 });
 
 // Test S3/MinIO connection endpoint
