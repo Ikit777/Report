@@ -21,13 +21,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | Keep report photos independent from the application's general filesystem.
-    | Railway does not create the MinIO service declared in docker-compose.yml,
-    | so a fresh Railway deployment must safely use the public disk. Set
-    | REPORT_ATTACHMENT_DISK=s3 only after a reachable S3/MinIO service exists.
+    | In Railway deployment, force S3 disk to ensure files persist across deploys.
+    | In local development, use public disk for easier testing.
     |
     */
 
-    'report_attachment_disk' => env('REPORT_ATTACHMENT_DISK', 'public'),
+    'report_attachment_disk' => env('APP_ENV') === 'production' 
+        ? 's3'  // Always use S3 in production (Railway)
+        : env('REPORT_ATTACHMENT_DISK', 'public'),  // Allow override in local dev
 
     /*
     |--------------------------------------------------------------------------
@@ -65,15 +66,11 @@ return [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION'),
+            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'bucket' => env('AWS_BUCKET'),
-            // Use S3_PUBLIC_URL for browser-accessible URLs, fallback to AWS_URL
             'url' => env('S3_PUBLIC_URL', env('AWS_URL')),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            // Do not let an unavailable object-storage service hold the PHP
-            // worker until Railway returns a 500/504 response. The upload
-            // exception is handled by ReportController and shown to the user.
             'retries' => 0,
             'http' => [
                 'connect_timeout' => (float) env('AWS_CONNECT_TIMEOUT', 5),

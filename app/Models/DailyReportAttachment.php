@@ -23,17 +23,27 @@ class DailyReportAttachment extends Model
     {
         $disk = config('filesystems.report_attachment_disk', 'public');
         
-        // Generate URL using configured disk
-        $url = Storage::disk($disk)->url($this->path);
+        // For local/public disk, use standard URL
+        if ($disk !== 's3') {
+            return Storage::disk($disk)->url($this->path);
+        }
         
-        // If S3_PUBLIC_URL is set and URL contains internal hostname, replace it
-        $publicUrl = config('filesystems.disks.s3.url');
-        if ($disk === 's3' && $publicUrl && str_contains($url, 'railway.internal')) {
-            // Extract the path after bucket name
-            $bucket = config('filesystems.disks.s3.bucket');
-            if (preg_match('#/' . preg_quote($bucket, '#') . '/(.+)$#', $url, $matches)) {
-                $filePath = $matches[1];
-                $url = rtrim($publicUrl, '/') . '/' . ltrim($filePath, '/');
+        // For S3/MinIO, ensure public URL
+        $url = Storage::disk('s3')->url($this->path);
+        
+        // Replace internal/localhost URLs with public Railway domain
+        $patterns = [
+            '#^https?://minio\.railway\.internal:9000#i',
+            '#^https?://localhost:9000#i',
+            '#^http://minio-production-f981\.up\.railway\.app#i', // Force HTTPS
+        ];
+        
+        $replacement = 'https://minio-production-f981.up.railway.app';
+        
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url)) {
+                $url = preg_replace($pattern, $replacement, $url);
+                break;
             }
         }
         
