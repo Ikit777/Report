@@ -22,7 +22,7 @@ RUN apk update && apk add --no-cache \
     npm
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql mbstring zip exif pcntl
+RUN docker-php-ext-install pdo pdo_pgsql mbstring zip exif pcntl intl
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
 
