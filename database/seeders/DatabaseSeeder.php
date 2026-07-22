@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
         $tanks = [
             ['code' => 'SPM1', 'main_hole' => 'TENGAH'],
             ['code' => 'SPM2', 'main_hole' => 'TENGAH'],
-            ['code' => 'SPM3', 'main_hole' => '(D+B)/2'],
+            ['code' => 'SPM3', 'main_hole' => '(DEPAN + BELAKANG) / 2'],
             ['code' => 'FT05', 'main_hole' => 'TENGAH'],
         ];
 
