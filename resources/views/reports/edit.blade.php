@@ -372,11 +372,13 @@
                     $transferTankCodes = $tanks->pluck('code')->unique()->values();
                     $transferTankIdsByCode = $tanks->groupBy('code')->map(fn($group) => $group->first()->id);
                     $transferRowCount = max(1, $transfers->count(), count(old('transfers', [])));
+                    // Convert transfers to array for proper indexing
+                    $transfersArray = $transfers->values()->all();
                 @endphp
                 <tbody id="transferRows">
                     @for($i = 0; $i < $transferRowCount; $i++)
                         @php
-                            $tData = isset($transfers[$i]) ? $transfers[$i] : null;
+                            $tData = isset($transfersArray[$i]) ? $transfersArray[$i] : null;
                             $dariTangki = old("transfers.{$i}.dari_tangki", $tData ? $tData->dari_tangki : '');
                             $keTangki = old("transfers.{$i}.ke_tangki", $tData ? $tData->ke_tangki : '');
                         @endphp
@@ -449,25 +451,9 @@
                             </td>
                             <td class="photo-upload-cell">
                                 @php
-                                    // Debug all attachments
-                                    if ($i === 0) {
-                                        dump('Total Attachments in Report:', $report->attachments->count());
-                                        dump('All Attachments:', $report->attachments->map(fn($a) => [
-                                            'id' => $a->id,
-                                            'section' => $a->section,
-                                            'key' => $a->attachment_key,
-                                            'path' => $a->path,
-                                        ])->toArray());
-                                    }
-                                    
                                     $existingAttachments = $tData
                                         ? $report->attachments->where('section', 'B')->where('attachment_key', "transfer-{$tData->id}")
                                         : collect();
-                                    
-                                    dump("Transfer Row {$i}: tData exists = " . ($tData ? 'YES' : 'NO') . 
-                                         ", tData ID = " . ($tData ? $tData->id : 'null') . 
-                                         ", Looking for key: " . ($tData ? "transfer-{$tData->id}" : 'N/A') .
-                                         ", Found attachments = " . $existingAttachments->count());
                                 @endphp
                                 <div class="photo-selected-list" data-photo-selected>
                                     @foreach($existingAttachments as $attachment)
