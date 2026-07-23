@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyReport;
 use App\Models\DailyReportItem;
+use App\Models\Site;
 use App\Models\Tank;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -17,16 +18,31 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        
+        // Get all active sites for dropdown (GL/SPV only)
+        $sites = null;
+        if ($user->isGl() || $user->isSpv()) {
+            $sites = Site::where('is_active', true)->orderBy('name')->get();
+        }
+        
+        // Get selected site_id from request
+        $siteId = $request->get('site_id');
+        
         $query = DailyReport::with(['fuelman', 'gl', 'spv', 'site'])->orderBy('date', 'desc');
 
         // Fuelman only sees their own reports
         if ($user->isFuelman()) {
             $query->where('fuelman_id', $user->id);
         }
+        
+        // Filter by site if selected (GL/SPV only)
+        if (($user->isGl() || $user->isSpv()) && $siteId) {
+            $query->where('site_id', $siteId);
+        }
 
         $reports = $query->paginate(15);
 
-        return view('reports.index', compact('reports'));
+        return view('reports.index', compact('reports', 'sites', 'siteId'));
     }
 
     public function create()

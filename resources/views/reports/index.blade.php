@@ -19,6 +19,24 @@
     @endif
 </div>
 
+@if($sites)
+<div class="card-table-container" style="margin-bottom: 1.5rem;">
+    <form method="GET" action="{{ route('reports.index') }}" class="form-row">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="site_id">Filter Site / Lokasi</label>
+            <select name="site_id" id="site_id" class="form-control" onchange="this.form.submit()">
+                <option value="">Semua Site</option>
+                @foreach($sites as $site)
+                    <option value="{{ $site->id }}" {{ $siteId == $site->id ? 'selected' : '' }}>
+                        {{ $site->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </form>
+</div>
+@endif
+
 <div class="card-table-container">
     <h2 class="card-title">Semua Laporan Harian</h2>
     <div class="table-responsive">
@@ -27,6 +45,9 @@
                 <tr>
                     <th>Tanggal Laporan</th>
                     <th>Hari</th>
+                    @if($sites)
+                        <th>Site / Lokasi</th>
+                    @endif
                     <th>Dibuat Oleh (Fuelman)</th>
                     <th>GL Pemverifikasi</th>
                     <th>SPV Penyetuju</th>
@@ -44,6 +65,9 @@
                     <tr>
                         <td><strong>{{ $report->date->format('d-m-Y') }}</strong></td>
                         <td>{{ $dayName }}</td>
+                        @if($sites)
+                            <td>{{ $report->site ? $report->site->name : '-' }}</td>
+                        @endif
                         <td>{{ $report->fuelman->name }}</td>
                         <td>{{ $report->gl ? $report->gl->name : '-' }}</td>
                         <td>{{ $report->spv ? $report->spv->name : '-' }}</td>
@@ -82,7 +106,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Belum ada laporan harian.</td>
+                        <td colspan="{{ $sites ? 8 : 7 }}" style="text-align: center; color: var(--text-muted);">Belum ada laporan harian.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -90,7 +114,7 @@
     </div>
     
     <div style="margin-top: 1.5rem;">
-        {{ $reports->links() }}
+        {{ $reports->appends(['site_id' => $siteId])->links() }}
     </div>
 </div>
 @endsection

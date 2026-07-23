@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyReport;
 use App\Models\DailyReportItem;
+use App\Models\Site;
 use App\Models\Tank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -98,22 +99,118 @@ class DashboardController extends Controller
         abort(403);
     }
 
-    public function analytics()
+    public function analytics(Request $request)
     {
         if (Auth::user()->isFuelman()) {
             abort(403, 'Fuelman tidak memiliki akses ke rekap dan analisis BBM.');
         }
 
-        $approvedReports = DailyReport::where('status', 'approved')->orderBy('date', 'desc')->get();
+        // Get all active sites for dropdown
+        $sites = Site::where('is_active', true)->orderBy('name')->get();
         
-        $usageData = DailyReportItem::whereHas('dailyReport', function($q) {
-                $q->where('status', 'approved');
-            })
-            ->select('tank_id', DB::raw('SUM(fm_pakai) as total_pakai'))
-            ->groupBy('tank_id')
-            ->with('tank')
-            ->get();
+        // Get selected filters from request
+        $siteId = $request->get('site_id');
+        $month = $request->get('month');
+        $year = $request->get('year');
+        
+        // Generate year options (last 5 years to next year)
+        $currentYear = (int) date('Y');
+        $years = range($currentYear - 5, $currentYear + 1);
 
-        return view('reports.analytics', compact('approvedReports', 'usageData'));
+        // If no filters selected, return empty data
+        if (!$siteId || !$month || !$year) {
+            return view('reports.analytics', [
+                'approvedReports' => collect([]),
+                'usageData' => collect([]),
+                'sites' => $sites,
+                'siteId' => $siteId,
+                'month' => $month,
+                'year' => $year,
+                'years' => $years,
+                'summaryStats' => null,
+                'previousMonthComparison' => null,
+            ]);
+        }
+
+        // Build query for approved reports with filters
+        $approvedReportsQuery = DailyReport::where('status', 'approved')
+            ->where('site_id', $siteId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month);
+        
+        $approvedReports = $approvedReportsQuery->orderBy('date', 'desc')->get();
+        
+        // Build query for usage data with filters
+        $usageDataQuery = DailyReportItem::whereHas('dailyReport', function($q) use ($siteId, $month, $year) {
+                $q->where('status', 'approved')
+                  ->where('site_id', $siteId)
+                  ->whereYear('date', $year)
+                  ->whereMonth('date', $month);
+            })
+            ->select(
+                'tank_id', 
+                DB::raw('SUM(fm_pakai) as total_pakai'),
+                DB::raw('AVG(fm_pakai) as avg_pakai'),
+                DB::raw('MAX(fm_pakai) as max_pakai'),
+                DB::raw('COUNT(*) as report_count')
+            )
+            ->groupBy('tank_id')
+            ->with('tank');
+        
+        $usageData = $usageDataQuery->get();
+
+        // Calculate summary statistics
+        $totalUsage = $usageData->sum('total_pakai');
+        $totalReports = $approvedReports->count();
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $avgDailyUsage = $totalReports > 0 ? $totalUsage / $totalReports : 0;
+        
+        $summaryStats = [
+            'total_usage' => $totalUsage,
+            'total_reports' => $totalReports,
+            'avg_daily_usage' => $avgDailyUsage,
+            'days_in_month' => $daysInMonth,
+            'tank_count' => $usageData->count(),
+        ];
+
+        // Get previous month data for comparison
+        $prevMonth = $month - 1;
+        $prevYear = $year;
+        if ($prevMonth < 1) {
+            $prevMonth = 12;
+            $prevYear = $year - 1;
+        }
+
+        $prevMonthUsage = DailyReportItem::whereHas('dailyReport', function($q) use ($siteId, $prevMonth, $prevYear) {
+                $q->where('status', 'approved')
+                  ->where('site_id', $siteId)
+                  ->whereYear('date', $prevYear)
+                  ->whereMonth('date', $prevMonth);
+            })
+            ->sum('fm_pakai');
+
+        $previousMonthComparison = null;
+        if ($prevMonthUsage > 0) {
+            $difference = $totalUsage - $prevMonthUsage;
+            $percentageChange = ($difference / $prevMonthUsage) * 100;
+            $previousMonthComparison = [
+                'prev_usage' => $prevMonthUsage,
+                'difference' => $difference,
+                'percentage' => $percentageChange,
+                'trend' => $difference > 0 ? 'up' : ($difference < 0 ? 'down' : 'stable'),
+            ];
+        }
+
+        return view('reports.analytics', compact(
+            'approvedReports', 
+            'usageData', 
+            'sites', 
+            'siteId', 
+            'month', 
+            'year', 
+            'years',
+            'summaryStats',
+            'previousMonthComparison'
+        ));
     }
 }
