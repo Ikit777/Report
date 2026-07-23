@@ -807,8 +807,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const updateItemCalculations = row => {
         const pagi = parseFloat(row.querySelector('[data-item-type="fm_pagi"]').value);
         const sore = parseFloat(row.querySelector('[data-item-type="fm_sore"]').value);
-        const result = !isNaN(pagi) && !isNaN(sore) ? sore - pagi : '';
-        row.querySelector('[data-item-type="fm_pakai"]').value = result === 0 ? '' : result;
+        
+        // Only show value if BOTH pagi AND sore have values
+        if (!isNaN(pagi) && !isNaN(sore)) {
+            const result = sore - pagi;
+            row.querySelector('[data-item-type="fm_pakai"]').value = result;
+        } else {
+            // If either is empty, show nothing
+            row.querySelector('[data-item-type="fm_pakai"]').value = '';
+        }
     };
 
     reportItemRows.addEventListener('input', event => {
