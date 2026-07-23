@@ -61,14 +61,24 @@
                         </td>
                         @if(Auth::user()->isSpv() || Auth::user()->role === 'admin')
                             <td>
-                                <div style="display: flex; gap: 0.25rem; align-items: center;">
-                                    <a href="{{ route('tanks.edit', $tank->id) }}" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin: 0;">
-                                        Ubah
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <a href="{{ route('tanks.edit', $tank->id) }}" class="btn-icon btn-icon-edit" title="Ubah">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
                                     </a>
                                     <form action="{{ route('tanks.destroy', $tank->id) }}" method="POST" onsubmit="return confirmDelete(event, this);" style="margin: 0; display: inline-flex;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger" style="font-size: 0.8rem; padding: 6px 12px; margin: 0;">Hapus</button>
+                                        <button type="submit" class="btn-icon btn-icon-delete" title="Hapus">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                                            </svg>
+                                        </button>
                                     </form>
                                 </div>
                             </td>

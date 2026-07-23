@@ -1619,3 +1619,44 @@ body.dark-mode .brand-logo {
         height: 180px !important;
     }
 }
+
+/* Icon Action Buttons - Rounded with teal/red colors */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-icon-edit {
+    background-color: #14b8a6;
+    color: white;
+}
+
+.btn-icon-edit:hover {
+    background-color: #0d9488;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(20, 184, 166, 0.3);
+}
+
+.btn-icon-delete {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-icon-delete:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-icon svg {
+    width: 20px;
+    height: 20px;
+}
