@@ -233,12 +233,14 @@
                             <!-- FOTO -->
                             <td class="photo-upload-cell">
                                 @php
-                                    $existingAttachments = $item
-                                        ? $report->attachments->where('section', 'A')->where('attachment_key', "item-{$tank->id}")
-                                        : collect();
+                                    // Get the correct attachment key from saved item's tank_id
+                                    $attachmentKey = $item ? "item-{$item->tank_id}" : "item-{$tank->id}";
+                                    $existingAttachments = $report->attachments
+                                        ->where('section', 'A')
+                                        ->where('attachment_key', $attachmentKey);
                                 @endphp
                                 @if($item)
-                                    <input type="hidden" name="items[{{ $index }}][attachment_key]" value="item-{{ $tank->id }}">
+                                    <input type="hidden" name="items[{{ $index }}][attachment_key]" value="{{ $attachmentKey }}">
                                 @endif
                                 
                                 <!-- Existing photos list -->
