@@ -763,9 +763,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const sore = parseFloat(fmSoreInput.value);
 
             if (!isNaN(pagi) && !isNaN(sore)) {
-                fmPakaiInput.value = sore - pagi;
+                const result = sore - pagi;
+                fmPakaiInput.value = result === 0 ? '' : result;
             } else {
-                fmPakaiInput.value = 0;
+                fmPakaiInput.value = '';
             }
         }
     }
@@ -792,7 +793,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const updateItemCalculations = row => {
         const pagi = parseFloat(row.querySelector('[data-item-type="fm_pagi"]').value);
         const sore = parseFloat(row.querySelector('[data-item-type="fm_sore"]').value);
-        row.querySelector('[data-item-type="fm_pakai"]').value = !isNaN(pagi) && !isNaN(sore) ? sore - pagi : '';
+        const result = !isNaN(pagi) && !isNaN(sore) ? sore - pagi : '';
+        row.querySelector('[data-item-type="fm_pakai"]').value = result === 0 ? '' : result;
     };
 
     reportItemRows.addEventListener('input', event => {
