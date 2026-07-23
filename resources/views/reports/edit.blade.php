@@ -1073,15 +1073,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const newFiles = Array.from(input.files).slice(0, availableSlots);
         const compressedFiles = [];
 
+        // Show loading indicator
+        const list = cell.querySelector('[data-photo-selected]');
+        list.innerHTML = '<div style="padding: 8px; color: #3b82f6; font-size: 0.85rem;">⏳ Memproses foto...</div>';
+
         for (const file of newFiles) {
             try {
                 let processed = file;
-                if (typeof imageCompression === 'function') {
+                if (typeof imageCompression === 'function' && file.size > 512 * 1024) { // Only compress if > 512 KB
                     const compressed = await imageCompression(file, {
-                        maxSizeMB: 0.65,
-                        maxWidthOrHeight: 1920,
+                        maxSizeMB: 0.8,          // Increased from 0.65
+                        maxWidthOrHeight: 1600,   // Reduced from 1920 - faster
                         useWebWorker: true,
-                        initialQuality: 0.8,
+                        initialQuality: 0.7,      // Reduced from 0.8 - faster
+                        maxIteration: 5,          // Limit iterations
                     });
                     processed = new File([compressed], file.name, {
                         type: compressed.type || file.type,
@@ -1090,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (processed.size > 1024 * 1024) {
-                    throw new Error('Ukuran foto masih melebihi 1 MB setelah dikompres.');
+                    throw new Error('Ukuran foto masih melebihi 1 MB setelum dikompres.');
                 }
                 compressedFiles.push(processed);
             } catch (error) {
