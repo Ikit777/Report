@@ -302,6 +302,7 @@ class TankController extends Controller
         // Start reading data from row 2
         $calibrations = [];
         $now = now();
+        $skippedRows = [];
 
         for ($i = 2; $i <= count($rows); $i++) {
             $row = $rows[$i];
@@ -309,8 +310,23 @@ class TankController extends Controller
             $rawVol = isset($row[$volumeKey]) ? trim($row[$volumeKey]) : null;
             if ($rawVol === null || $rawVol === '') continue; // Skip empty rows
 
-            // Clean volume (replace comma with dot if string float representation)
-            $vol = floatval(str_replace(',', '.', str_replace('.', '', $rawVol))); // Handles formats like 10.000 or 10,000 or 10.2
+            // Clean volume: handle scientific notation, commas, dots
+            $cleanVol = str_replace(',', '.', str_replace('.', '', (string) $rawVol));
+            
+            // Check if it's scientific notation (contains E or e)
+            if (stripos($cleanVol, 'e') !== false) {
+                // Skip rows with scientific notation - likely a data error in Excel
+                $skippedRows[] = "Row {$i}: Volume {$rawVol} (scientific notation detected - possible Excel format error)";
+                continue;
+            }
+            
+            $vol = floatval($cleanVol);
+            
+            // Validate volume is reasonable (max 1 million liters per sounding point)
+            if ($vol > 1000000 || $vol < 0) {
+                $skippedRows[] = "Row {$i}: Volume {$rawVol} (out of reasonable range: 0-1,000,000)";
+                continue;
+            }
 
             // Use DIPP (CM) as the source of truth when both columns exist.
             // The form submits sounding in CM, while some Excel templates use
@@ -345,6 +361,20 @@ class TankController extends Controller
 
         if (count($calibrations) > 0) {
             \App\Models\TankCalibration::insert($calibrations);
+        }
+        
+        // Log skipped rows if any
+        if (count($skippedRows) > 0) {
+            Log::warning('Some calibration rows were skipped during import', [
+                'tank_id' => $tank->id,
+                'skipped_count' => count($skippedRows),
+                'skipped_rows' => array_slice($skippedRows, 0, 10), // Log first 10
+            ]);
+            
+            // If too many rows were skipped, throw error
+            if (count($skippedRows) > count($rows) * 0.5) {
+                throw new \Exception('Lebih dari 50% baris dilewati karena format data tidak valid. Periksa kolom VOLUME di Excel: ' . implode('; ', array_slice($skippedRows, 0, 5)));
+            }
         }
     }
 
