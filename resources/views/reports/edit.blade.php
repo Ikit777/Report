@@ -842,6 +842,10 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${index}]`);
             field.value = '';
+            // Clear LITER fields to empty (not "XXXX") for new rows
+            if (field.dataset.itemType === 'liter_pagi' || field.dataset.itemType === 'liter_sore') {
+                field.value = '';
+            }
         });
         row.querySelector('[data-photo-selected]').replaceChildren();
         row.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
