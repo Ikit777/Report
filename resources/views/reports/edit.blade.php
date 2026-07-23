@@ -453,20 +453,16 @@
                                         ? $report->attachments->where('section', 'B')->where('attachment_key', "transfer-{$tData->id}")
                                         : collect();
                                 @endphp
-                                <div class="photo-selected-list" data-photo-selected></div>
-                                @if($existingAttachments->isNotEmpty())
-                                    <div class="saved-photo-count">{{ $existingAttachments->count() }} foto tersimpan</div>
-                                    <div class="saved-photo-list">
-                                        @foreach($existingAttachments as $attachment)
-                                            <div class="saved-photo-card" data-attachment-id="{{ $attachment->id }}">
-                                            <img src="{{ Storage::disk(config('filesystems.report_attachment_disk', 'public') === 'local' ? 'public' : config('filesystems.report_attachment_disk', 'public'))->url($attachment->path) }}" alt="Foto transfer">
-                                                <button type="button" class="photo-remove-button" data-delete-attachment="{{ $attachment->id }}" title="Hapus foto" aria-label="Hapus foto">
-                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg>
-                                                </button>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endif
+                                <div class="photo-selected-list" data-photo-selected>
+                                    @foreach($existingAttachments as $attachment)
+                                        <div class="photo-selected-item" data-existing-attachment="{{ $attachment->id }}">
+                                            <span>{{ basename($attachment->path) }}</span>
+                                            <button type="button" class="photo-remove-button" data-delete-attachment="{{ $attachment->id }}" title="Hapus foto" aria-label="Hapus foto">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg>
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
                                 <label class="photo-upload-button">
                                     Pilih foto
                                     <input type="file" name="transfers[{{ $i }}][photos][]" accept="image/jpeg,image/png,image/webp" multiple data-photo-input>
@@ -860,7 +856,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         row.querySelector('[data-photo-selected]').replaceChildren();
-        row.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         row.querySelector('input[name$="[attachment_key]"]')?.remove();
         row.querySelector('[data-item-type="tank_id"]').selectedIndex = 0;
         updateItemMainHole(row);
@@ -993,7 +988,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         row.querySelectorAll('select').forEach(field => field.selectedIndex = 0);
         row.querySelector('[data-photo-selected]').replaceChildren();
-        row.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         row.querySelector('input[name$="[attachment_key]"]')?.remove();
         transferRows.appendChild(row);
         refreshDynamicRows(transferRows, 'transfers');
@@ -1047,9 +1041,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const files = input._selectedPhotos ?? Array.from(input.files);
         input._selectedPhotos = files;
         syncSelectedPhotos(input);
-        cell.querySelector('.photo-upload-button').hidden = files.length + cell.querySelectorAll('.saved-photo-card').length >= 2;
+        
+        // Count existing attachments in list
+        const existingCount = list.querySelectorAll('[data-existing-attachment]').length;
+        cell.querySelector('.photo-upload-button').hidden = files.length + existingCount >= 2;
 
-        list.replaceChildren();
+        // Keep existing attachments, only re-render new files
+        const existingItems = Array.from(list.querySelectorAll('[data-existing-attachment]'));
+        list.replaceChildren(...existingItems);
+        
         files.forEach((file, index) => {
             const item = document.createElement('div');
             item.className = 'photo-selected-item';
@@ -1069,13 +1069,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const addSelectedPhotos = async (input) => {
         const cell = input.closest('.photo-upload-cell');
-        const availableSlots = Math.max(0, 2 - cell.querySelectorAll('.saved-photo-card').length);
+        const list = cell.querySelector('[data-photo-selected]');
+        const existingCount = list.querySelectorAll('[data-existing-attachment]').length;
+        const availableSlots = Math.max(0, 2 - existingCount);
         const newFiles = Array.from(input.files).slice(0, availableSlots);
         const compressedFiles = [];
 
-        // Show loading indicator
-        const list = cell.querySelector('[data-photo-selected]');
-        list.innerHTML = '<div style="padding: 8px; color: #3b82f6; font-size: 0.85rem;">⏳ Memproses foto...</div>';
+        // Show loading indicator (preserve existing items)
+        const existingItems = Array.from(list.querySelectorAll('[data-existing-attachment]'));
+        list.replaceChildren(...existingItems);
+        const loadingDiv = document.createElement('div');
+        loadingDiv.style.cssText = 'padding: 8px; color: #3b82f6; font-size: 0.85rem;';
+        loadingDiv.textContent = '⏳ Memproses foto...';
+        list.appendChild(loadingDiv);
 
         for (const file of newFiles) {
             try {
@@ -1137,10 +1143,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const cell = attachmentButton.closest('.photo-upload-cell');
-        attachmentButton.closest('.saved-photo-card').remove();
-        const remainingCount = cell.querySelectorAll('.saved-photo-card').length;
-        const savedCount = cell.querySelector('.saved-photo-count');
-        if (savedCount) savedCount.textContent = remainingCount ? `${remainingCount} foto tersimpan` : 'Tidak ada foto tersimpan';
+        attachmentButton.closest('[data-existing-attachment]').remove();
         renderSelectedPhotos(cell.querySelector('input[data-photo-input]'));
     });
 
