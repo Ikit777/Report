@@ -342,6 +342,8 @@ class ReportController extends Controller
 
             $this->deleteAttachments($report, $request->input('delete_attachment_ids', []));
 
+            $this->migrateLegacyItemAttachmentKeys($report);
+
             // Clear existing items and save new ones
             $report->items()->delete();
             $report->transfers()->delete();
@@ -635,7 +637,19 @@ class ReportController extends Controller
                 'Transfer ' . ($data['dari_tangki'] ?: '-') . ' ke ' . ($data['ke_tangki'] ?: '-'),
                 $data['lama_transfer'] ?? null,
             ])));
-            $this->saveAttachmentPhotos($report, 'B', $data['attachment_key'] ?? "transfer-{$transfer->id}", $context, $data['photos'] ?? []);
+            $attachmentKey = "transfer-{$transfer->id}";
+            $legacyAttachmentKey = $data['attachment_key'] ?? $attachmentKey;
+
+            // Transfer dibuat ulang saat update. Pindahkan foto lama ke ID transfer
+            // yang baru agar tetap tampil pada pembukaan form berikutnya.
+            if ($legacyAttachmentKey !== $attachmentKey) {
+                $report->attachments()
+                    ->where('section', 'B')
+                    ->where('attachment_key', $legacyAttachmentKey)
+                    ->update(['attachment_key' => $attachmentKey]);
+            }
+
+            $this->saveAttachmentPhotos($report, 'B', $attachmentKey, $context, $data['photos'] ?? []);
         }
     }
 
@@ -707,6 +721,17 @@ class ReportController extends Controller
         foreach ($attachments as $attachment) {
             Storage::disk($this->attachmentDisk())->delete($attachment->path);
             $attachment->delete();
+        }
+    }
+
+    /** Convert the legacy per-item attachment key to the stable per-tank key. */
+    private function migrateLegacyItemAttachmentKeys(DailyReport $report): void
+    {
+        foreach ($report->items as $item) {
+            $report->attachments()
+                ->where('section', 'A')
+                ->where('attachment_key', "item-{$item->id}")
+                ->update(['attachment_key' => "item-{$item->tank_id}"]);
         }
     }
 
