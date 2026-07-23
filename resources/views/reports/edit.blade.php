@@ -452,6 +452,8 @@
                                     $existingAttachments = $tData
                                         ? $report->attachments->where('section', 'B')->where('attachment_key', "transfer-{$tData->id}")
                                         : collect();
+                                    // Debug: uncomment to see attachment data
+                                    dump("Transfer {$i}: tData ID = " . ($tData ? $tData->id : 'null') . ", Attachments = " . $existingAttachments->count());
                                 @endphp
                                 <div class="photo-selected-list" data-photo-selected>
                                     @foreach($existingAttachments as $attachment)
