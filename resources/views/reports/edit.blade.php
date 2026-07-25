@@ -1366,9 +1366,29 @@ document.addEventListener('DOMContentLoaded', function () {
         input._selectedPhotos = files;
         syncSelectedPhotos(input);
         
+        // Determine max photos based on section and row type
+        const row = input.closest('tr');
+        let maxPhotos = 2; // default
+        
+        // Check if it's in reportItemRows (Section A)
+        if (row && row.closest('#reportItemRows')) {
+            const avgType = row.dataset.avgType;
+            if (avgType) {
+                // (DEPAN + BELAKANG) / 2 rows: 4 photos each
+                maxPhotos = 4;
+            } else {
+                // Normal tank rows: 8 photos
+                maxPhotos = 8;
+            }
+        }
+        // Check if it's in transferRows (Section B)
+        else if (row && row.closest('#transferRows')) {
+            maxPhotos = 6;
+        }
+        
         // Count existing attachments in list
         const existingCount = list.querySelectorAll('[data-existing-attachment]').length;
-        cell.querySelector('.photo-upload-button').hidden = files.length + existingCount >= 2;
+        cell.querySelector('.photo-upload-button').hidden = files.length + existingCount >= maxPhotos;
 
         // Keep existing attachments, only re-render new files
         const existingItems = Array.from(list.querySelectorAll('[data-existing-attachment]'));
@@ -1394,8 +1414,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const addSelectedPhotos = async (input) => {
         const cell = input.closest('.photo-upload-cell');
         const list = cell.querySelector('[data-photo-selected]');
+        const row = input.closest('tr');
+        
+        // Determine max photos based on section and row type
+        let maxPhotos = 2; // default
+        
+        // Check if it's in reportItemRows (Section A)
+        if (row && row.closest('#reportItemRows')) {
+            const avgType = row.dataset.avgType;
+            if (avgType) {
+                // (DEPAN + BELAKANG) / 2 rows: 4 photos each
+                maxPhotos = 4;
+            } else {
+                // Normal tank rows: 8 photos
+                maxPhotos = 8;
+            }
+        }
+        // Check if it's in transferRows (Section B)
+        else if (row && row.closest('#transferRows')) {
+            maxPhotos = 6;
+        }
+        
         const existingCount = list.querySelectorAll('[data-existing-attachment]').length;
-        const availableSlots = Math.max(0, 2 - existingCount);
+        const availableSlots = Math.max(0, maxPhotos - existingCount);
         const newFiles = Array.from(input.files).slice(0, availableSlots);
         const compressedFiles = [];
 
