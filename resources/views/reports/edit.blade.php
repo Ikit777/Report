@@ -408,8 +408,6 @@
                     </tr>
                 </thead>
                 @php
-                    $transferTankCodes = $tanks->pluck('code')->unique()->values();
-                    $transferTankIdsByCode = $tanks->groupBy('code')->map(fn($group) => $group->first()->id);
                     $transferRowCount = max(1, $transfers->count(), count(old('transfers', [])));
                     // Convert transfers to array for proper indexing
                     $transfersArray = $transfers->values()->all();
@@ -427,18 +425,18 @@
                                 @if($tData)
                                     <input type="hidden" name="transfers[{{ $i }}][attachment_key]" value="transfer-{{ $tData->id }}">
                                 @endif
-                                <select name="transfers[{{ $i }}][dari_tangki]" class="sheet-input">
+                                <select name="transfers[{{ $i }}][dari_tangki]" class="sheet-input transfer-tank-select">
                                     <option value="">Pilih</option>
-                                    @foreach($transferTankCodes as $tankCode)
-                                        <option value="{{ $tankCode }}" data-tank-id="{{ $transferTankIdsByCode->get($tankCode) }}" @selected($dariTangki === $tankCode)>{{ $tankCode }}</option>
+                                    @foreach($tanks as $tank)
+                                        <option value="{{ $tank->code }}" data-tank-id="{{ $tank->id }}" data-site-id="{{ $tank->site_id }}" @selected($dariTangki === $tank->code)>{{ $tank->code }}</option>
                                     @endforeach
                                 </select>
                             </td>
                             <td>
-                                <select name="transfers[{{ $i }}][ke_tangki]" class="sheet-input">
+                                <select name="transfers[{{ $i }}][ke_tangki]" class="sheet-input transfer-tank-select">
                                     <option value="">Pilih</option>
-                                    @foreach($transferTankCodes as $tankCode)
-                                        <option value="{{ $tankCode }}" data-tank-id="{{ $transferTankIdsByCode->get($tankCode) }}" @selected($keTangki === $tankCode)>{{ $tankCode }}</option>
+                                    @foreach($tanks as $tank)
+                                        <option value="{{ $tank->code }}" data-tank-id="{{ $tank->id }}" data-site-id="{{ $tank->site_id }}" @selected($keTangki === $tank->code)>{{ $tank->code }}</option>
                                     @endforeach
                                 </select>
                             </td>
@@ -1072,6 +1070,22 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
         row.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
         
+        // Update photo limit description for all 3 rows to "Maks. 4 foto"
+        [row, belakangRow, avgRow].forEach(r => {
+            const photoCell = r.querySelector('.photo-upload-cell');
+            if (photoCell) {
+                // Remove old description if exists
+                const oldDesc = photoCell.querySelector('div[style*="font-size: 0.75rem"]');
+                if (oldDesc) oldDesc.remove();
+                
+                // Add new description
+                const desc = document.createElement('div');
+                desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;';
+                desc.textContent = 'Maks. 4 foto';
+                photoCell.insertBefore(desc, photoCell.firstChild);
+            }
+        });
+        
         // Refresh row numbers
         refreshDynamicRows(reportItemRows, 'items');
         
@@ -1579,6 +1593,31 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.rata-input').forEach(input => input.addEventListener('input', updateKapasitasWidget));
 
     updateKapasitasWidget();
+    
+    // Site-based filtering for tank dropdowns
+    const siteSelect = document.getElementById('site_id');
+    const filterTanksBySite = () => {
+        const siteId = siteSelect.value;
+        // Filter both Section A tank-select and Section B transfer-tank-select
+        const tankSelects = document.querySelectorAll('.tank-select, .transfer-tank-select');
+        
+        tankSelects.forEach(select => {
+            const options = select.querySelectorAll('option[data-site-id]');
+            options.forEach(option => {
+                if (!siteId || option.dataset.siteId === siteId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                    if (option.selected) {
+                        select.value = '';
+                    }
+                }
+            });
+        });
+    };
+    
+    siteSelect.addEventListener('change', filterTanksBySite);
+    filterTanksBySite(); // Initial filter on page load
 });
 </script>
 @endsection

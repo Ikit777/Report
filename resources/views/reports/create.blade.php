@@ -388,8 +388,6 @@
                     </tr>
                 </thead>
                 @php
-                    $transferTankCodes = $tanks->pluck('code')->unique()->values();
-                    $transferTankIdsByCode = $tanks->groupBy('code')->map(fn($group) => $group->first()->id);
                     $transferRowCount = max(1, count(old('transfers', [])));
                 @endphp
                 <tbody id="transferRows">
@@ -397,18 +395,28 @@
                         <tr>
                             <td class="row-number" style="text-align: center;">{{ $i + 1 }}</td>
                             <td>
-                                <select name="transfers[{{ $i }}][dari_tangki]" class="sheet-input">
+                                <select name="transfers[{{ $i }}][dari_tangki]" class="sheet-input transfer-tank-select">
                                     <option value="">Pilih</option>
-                                    @foreach($transferTankCodes as $tankCode)
-                                        <option value="{{ $tankCode }}" data-tank-id="{{ $transferTankIdsByCode->get($tankCode) }}" @selected(old("transfers.{$i}.dari_tangki") === $tankCode)>{{ $tankCode }}</option>
+                                    @foreach($tanks as $tank)
+                                        <option value="{{ $tank->code }}" 
+                                                data-tank-id="{{ $tank->id }}" 
+                                                data-site-id="{{ $tank->site_id }}"
+                                                @selected(old("transfers.{$i}.dari_tangki") === $tank->code)>
+                                            {{ $tank->code }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </td>
                             <td>
-                                <select name="transfers[{{ $i }}][ke_tangki]" class="sheet-input">
+                                <select name="transfers[{{ $i }}][ke_tangki]" class="sheet-input transfer-tank-select">
                                     <option value="">Pilih</option>
-                                    @foreach($transferTankCodes as $tankCode)
-                                        <option value="{{ $tankCode }}" data-tank-id="{{ $transferTankIdsByCode->get($tankCode) }}" @selected(old("transfers.{$i}.ke_tangki") === $tankCode)>{{ $tankCode }}</option>
+                                    @foreach($tanks as $tank)
+                                        <option value="{{ $tank->code }}" 
+                                                data-tank-id="{{ $tank->id }}" 
+                                                data-site-id="{{ $tank->site_id }}"
+                                                @selected(old("transfers.{$i}.ke_tangki") === $tank->code)>
+                                            {{ $tank->code }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </td>
@@ -546,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ===== FILTER TANKS BY SELECTED SITE =====
     const siteSelect = document.querySelector('select[name="site_id"]');
-    const tankSelects = () => document.querySelectorAll('.tank-select');
+    const tankSelects = () => document.querySelectorAll('.tank-select, .transfer-tank-select');
     
     function filterTanksBySite() {
         const selectedSiteId = siteSelect?.value;
@@ -1018,6 +1026,22 @@ document.addEventListener('DOMContentLoaded', function () {
         // Set liter fields to XXXX for DEPAN (current row)
         row.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
         row.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
+        
+        // Update photo limit description for all 3 rows to "Maks. 4 foto"
+        [row, belakangRow, avgRow].forEach(r => {
+            const photoCell = r.querySelector('.photo-upload-cell');
+            if (photoCell) {
+                // Remove old description if exists
+                const oldDesc = photoCell.querySelector('div[style*="font-size: 0.75rem"]');
+                if (oldDesc) oldDesc.remove();
+                
+                // Add new description
+                const desc = document.createElement('div');
+                desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;';
+                desc.textContent = 'Maks. 4 foto';
+                photoCell.insertBefore(desc, photoCell.firstChild);
+            }
+        });
         
         // Refresh row numbers
         refreshDynamicRows(reportItemRows, 'items');
