@@ -902,11 +902,11 @@ document.addEventListener('DOMContentLoaded', function () {
         belakangRow.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
         belakangRow.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
         
-        // Create (D+B)/2 row
+        // Create (DEPAN + BELAKANG) / 2 row
         const avgIndex = belakangIndex + 1;
         const avgRow = row.cloneNode(true);
         avgRow.querySelector('.row-number').textContent = avgIndex + 1;
-        avgRow.querySelector('.item-main-hole').textContent = '(D+B)/2';
+        avgRow.querySelector('.item-main-hole').textContent = '(DEPAN + BELAKANG) / 2';
         avgRow.dataset.avgType = 'average';
         
         // Update name attributes for average row
