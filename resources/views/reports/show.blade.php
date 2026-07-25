@@ -890,8 +890,16 @@
             </tbody>
         </table>
     </div>
+    </div>
 
-    @if(false)
+    <!-- C. PEMAKAIAN FLOWMETER - Outside Card -->
+    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+        C. PEMAKAIAN FLOWMETER
+    </h3>
+
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+        <div class="table-responsive">
+            <table class="sheet-table" style="border-collapse: collapse; width: 100%;">
             <thead>
                 <tr>
                     <th style="width: 40px;">NO</th>
@@ -910,8 +918,8 @@
                         <td style="text-align: center; font-weight: bold;">{{ $flowmeter->unit }}</td>
                         <td style="text-align: center;">{{ $flowmeter->jenis_flowmeter }}</td>
                         <td style="text-align: center;">{{ $flowmeter->nomor_seri }}</td>
-                        <td style="text-align: right; padding-right: 8px;">{{ $flowmeter->awal_pagi !== null ? number_format($flowmeter->awal_pagi, 0, ',', '.') : '' }}</td>
-                        <td style="text-align: right; padding-right: 8px;">{{ $flowmeter->akhir_sore !== null ? number_format($flowmeter->akhir_sore, 0, ',', '.') : '' }}</td>
+                        <td style="text-align: right; padding-right: 8px;">{{ $flowmeter->awal_pagi !== null ? $flowmeter->awal_pagi : '' }}</td>
+                        <td style="text-align: right; padding-right: 8px;">{{ $flowmeter->akhir_sore !== null ? $flowmeter->akhir_sore : '' }}</td>
                         <td class="val-pakai" style="text-align: right; padding-right: 8px; font-weight: bold;">
                             {{ $flowmeter->jumlah_pakai !== null ? number_format($flowmeter->jumlah_pakai, 0, ',', '.') : '' }}
                         </td>
@@ -928,7 +936,6 @@
         </table>
     </div>
     </div>
-    @endif
 
     @if(false)
     <!-- BOTTOM STATISTICS SECTION -->
