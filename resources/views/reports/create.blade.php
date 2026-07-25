@@ -596,16 +596,35 @@ document.addEventListener('DOMContentLoaded', function () {
     // ===== END FILTER TANKS =====
 
     function refreshDynamicRows(rowsContainer, fieldGroup) {
+        let rowNumber = 1;
         rowsContainer.querySelectorAll('tr').forEach((row, index) => {
-            const numberCell = row.querySelector('.row-number') || row.querySelector('td');
+            const numberCell = row.querySelector('.row-number');
             let actionCell = row.querySelector('.row-action');
             if (!actionCell) {
                 actionCell = document.createElement('td');
                 actionCell.className = 'row-action';
                 actionCell.style.textAlign = 'center';
-                numberCell.insertAdjacentElement('afterend', actionCell);
+                if (numberCell) {
+                    numberCell.insertAdjacentElement('afterend', actionCell);
+                } else {
+                    row.appendChild(actionCell);
+                }
             }
-            numberCell.textContent = index + 1;
+            
+            // Only update number if cell exists (not removed by rowspan)
+            if (numberCell) {
+                numberCell.textContent = rowNumber;
+                // Only increment rowNumber if this row starts a new group (has rowspan or no rowspan)
+                const rowspan = parseInt(numberCell.getAttribute('rowspan')) || 1;
+                if (rowspan > 1) {
+                    // This is the first row of a group, increment by 1
+                    rowNumber++;
+                } else if (!row.previousElementSibling || row.previousElementSibling.querySelector('.row-number')) {
+                    // This is a standalone row or first row without rowspan
+                    rowNumber++;
+                }
+            }
+            
             actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
             row.appendChild(actionCell);
 
@@ -622,7 +641,54 @@ document.addEventListener('DOMContentLoaded', function () {
         rowsContainer.addEventListener('click', event => {
             const removeButton = event.target.closest('[data-remove-row]');
             if (!removeButton) return;
-            removeButton.closest('tr').remove();
+            
+            const currentRow = removeButton.closest('tr');
+            const avgType = currentRow.dataset.avgType;
+            
+            // If this row is part of an average group (depan, belakang, or average)
+            if (avgType) {
+                // Find all rows in this group
+                let rowsToRemove = [currentRow];
+                
+                if (avgType === 'depan') {
+                    // Current row is DEPAN, find next 2 rows (BELAKANG and average)
+                    let nextRow = currentRow.nextElementSibling;
+                    if (nextRow && nextRow.dataset.avgType === 'belakang') {
+                        rowsToRemove.push(nextRow);
+                        nextRow = nextRow.nextElementSibling;
+                        if (nextRow && nextRow.dataset.avgType === 'average') {
+                            rowsToRemove.push(nextRow);
+                        }
+                    }
+                } else if (avgType === 'belakang') {
+                    // Current row is BELAKANG, find previous (DEPAN) and next (average)
+                    let prevRow = currentRow.previousElementSibling;
+                    if (prevRow && prevRow.dataset.avgType === 'depan') {
+                        rowsToRemove.unshift(prevRow);
+                    }
+                    let nextRow = currentRow.nextElementSibling;
+                    if (nextRow && nextRow.dataset.avgType === 'average') {
+                        rowsToRemove.push(nextRow);
+                    }
+                } else if (avgType === 'average') {
+                    // Current row is average, find previous 2 rows (DEPAN and BELAKANG)
+                    let prevRow = currentRow.previousElementSibling;
+                    if (prevRow && prevRow.dataset.avgType === 'belakang') {
+                        rowsToRemove.unshift(prevRow);
+                        prevRow = prevRow.previousElementSibling;
+                        if (prevRow && prevRow.dataset.avgType === 'depan') {
+                            rowsToRemove.unshift(prevRow);
+                        }
+                    }
+                }
+                
+                // Remove all rows in the group
+                rowsToRemove.forEach(row => row.remove());
+            } else {
+                // Normal single row removal
+                currentRow.remove();
+            }
+            
             refreshDynamicRows(rowsContainer, fieldGroup);
         });
     }
@@ -880,10 +946,26 @@ document.addEventListener('DOMContentLoaded', function () {
         currentMainHoleCell.textContent = 'DEPAN';
         row.dataset.avgType = 'depan';
         
+        // Set rowspan for NO, KODE TANGKI, and ACTION columns in current row
+        const currentNoCell = row.querySelector('.row-number');
+        const currentTankCell = row.querySelector('.tank-code-cell');
+        const currentActionCell = row.querySelector('.row-action');
+        currentNoCell.setAttribute('rowspan', '3');
+        currentTankCell.setAttribute('rowspan', '3');
+        if (currentActionCell) {
+            currentActionCell.setAttribute('rowspan', '3');
+            currentActionCell.style.verticalAlign = 'middle';
+        }
+        currentNoCell.style.verticalAlign = 'middle';
+        currentTankCell.style.verticalAlign = 'middle';
+        
         // Create BELAKANG row
         const belakangIndex = reportItemRows.querySelectorAll('tr').length;
         const belakangRow = row.cloneNode(true);
-        belakangRow.querySelector('.row-number').textContent = belakangIndex + 1;
+        // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
+        belakangRow.querySelector('.row-number')?.remove();
+        belakangRow.querySelector('.tank-code-cell')?.remove();
+        belakangRow.querySelector('.row-action')?.remove();
         belakangRow.querySelector('.item-main-hole').textContent = 'BELAKANG';
         belakangRow.dataset.avgType = 'belakang';
         
@@ -895,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 field.value = '';
             }
         });
-        belakangRow.querySelector('[data-photo-selected]').replaceChildren();
+        belakangRow.querySelector('[data-photo-selected]')?.replaceChildren();
         belakangRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         
         // Set liter fields to XXXX for BELAKANG
@@ -905,7 +987,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create (DEPAN + BELAKANG) / 2 row
         const avgIndex = belakangIndex + 1;
         const avgRow = row.cloneNode(true);
-        avgRow.querySelector('.row-number').textContent = avgIndex + 1;
+        // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
+        avgRow.querySelector('.row-number')?.remove();
+        avgRow.querySelector('.tank-code-cell')?.remove();
+        avgRow.querySelector('.row-action')?.remove();
         avgRow.querySelector('.item-main-hole').textContent = '(DEPAN + BELAKANG) / 2';
         avgRow.dataset.avgType = 'average';
         
