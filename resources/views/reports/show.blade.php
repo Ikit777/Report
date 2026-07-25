@@ -936,6 +936,7 @@
         </table>
     </div>
     </div>
+    @endif
 
     @if(false)
     <!-- BOTTOM STATISTICS SECTION -->
