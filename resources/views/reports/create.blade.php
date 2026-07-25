@@ -551,6 +551,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const reportForm = document.getElementById('reportForm');
     const rowTemplates = new Map();
+    const userName = '{{ Auth::user()->name }}'; // Get current user name
 
     // ===== FILTER TANKS BY SELECTED SITE =====
     const siteSelect = document.querySelector('select[name="site_id"]');
@@ -1156,6 +1157,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Clear LITER fields to empty (not "XXXX") for new rows
             if (field.dataset.itemType === 'liter_pagi' || field.dataset.itemType === 'liter_sore') {
                 field.value = '';
+            }
+            // Set default petugas name to current user
+            if (field.name && (field.name.includes('[petugas_pagi]') || field.name.includes('[petugas_sore]'))) {
+                field.value = userName;
             }
         });
         row.querySelector('[data-photo-selected]').replaceChildren();

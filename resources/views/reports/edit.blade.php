@@ -624,6 +624,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const reportForm = document.getElementById('reportForm');
     const rowTemplates = new Map();
+    const userName = '{{ Auth::user()->name }}'; // Get current user name
+    
+    console.log('=== DEBUG START ===');
+    console.log('reportForm:', reportForm);
+    console.log('reportItemRows element:', document.getElementById('reportItemRows'));
+    console.log('addReportItemRow button:', document.getElementById('addReportItemRow'));
+    console.log('transferRows element:', document.getElementById('transferRows'));
+    console.log('addTransferRow button:', document.getElementById('addTransferRow'));
+    console.log('flowmeterRows element:', document.getElementById('flowmeterRows'));
+    console.log('addFlowmeterRow button:', document.getElementById('addFlowmeterRow'));
+    
+    // CRITICAL: Test if script reaches here
+    if (!document.getElementById('reportItemRows')) {
+        alert('ERROR: reportItemRows element NOT FOUND! Check HTML structure.');
+    }
+    if (!document.getElementById('addReportItemRow')) {
+        alert('ERROR: addReportItemRow button NOT FOUND! Check HTML structure.');
+    }
 
     // ===== FILTER TANKS BY SELECTED SITE =====
     const siteSelect = document.querySelector('select[name="site_id"]');
@@ -1239,6 +1257,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (field.dataset.itemType === 'liter_pagi' || field.dataset.itemType === 'liter_sore') {
                 field.value = '';
             }
+            // Set default petugas name to current user
+            if (field.name && (field.name.includes('[petugas_pagi]') || field.name.includes('[petugas_sore]'))) {
+                field.value = userName;
+            }
         });
         row.querySelector('[data-photo-selected]').replaceChildren();
         row.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
@@ -1663,30 +1685,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateKapasitasWidget();
     
-    // Site-based filtering for tank dropdowns
-    const siteSelect = document.getElementById('site_id');
-    const filterTanksBySite = () => {
-        const siteId = siteSelect.value;
-        // Filter both Section A tank-select and Section B transfer-tank-select
-        const tankSelects = document.querySelectorAll('.tank-select, .transfer-tank-select');
-        
-        tankSelects.forEach(select => {
-            const options = select.querySelectorAll('option[data-site-id]');
-            options.forEach(option => {
-                if (!siteId || option.dataset.siteId === siteId) {
-                    option.style.display = '';
-                } else {
-                    option.style.display = 'none';
-                    if (option.selected) {
-                        select.value = '';
-                    }
-                }
-            });
-        });
-    };
-    
-    siteSelect.addEventListener('change', filterTanksBySite);
-    filterTanksBySite(); // Initial filter on page load
 });
 </script>
 @endsection
