@@ -654,16 +654,6 @@ document.addEventListener('DOMContentLoaded', function () {
         rowsContainer.querySelectorAll('tr').forEach((row, index) => {
             const numberCell = row.querySelector('.row-number');
             let actionCell = row.querySelector('.row-action');
-            if (!actionCell) {
-                actionCell = document.createElement('td');
-                actionCell.className = 'row-action';
-                actionCell.style.textAlign = 'center';
-                if (numberCell) {
-                    numberCell.insertAdjacentElement('afterend', actionCell);
-                } else {
-                    row.appendChild(actionCell);
-                }
-            }
             
             // Only update number if cell exists (not removed by rowspan)
             if (numberCell) {
@@ -679,8 +669,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             
-            actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
-            row.appendChild(actionCell);
+            // Only add/update action cell if it doesn't exist OR if this row has a number cell (meaning it's not a sub-row)
+            if (!actionCell && numberCell) {
+                actionCell = document.createElement('td');
+                actionCell.className = 'row-action';
+                actionCell.style.textAlign = 'center';
+                row.appendChild(actionCell);
+            }
+            
+            // Only update action button if action cell exists (not removed by rowspan)
+            if (actionCell) {
+                actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
+            }
 
             row.querySelectorAll('input, select').forEach(field => {
                 field.name = field.name.replace(new RegExp(`${fieldGroup}\\[\\d+\\]`), `${fieldGroup}[${index}]`);
