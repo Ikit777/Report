@@ -513,6 +513,7 @@
                                     Pilih foto
                                     <input type="file" name="transfers[{{ $i }}][photos][]" accept="image/jpeg,image/png,image/webp" multiple data-photo-input>
                                 </label>
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">Maks. 6 foto</div>
                             </td>
                             <td class="row-action" style="text-align: center;"></td>
                         </tr>

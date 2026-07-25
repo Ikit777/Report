@@ -467,12 +467,12 @@
                                 <input type="text" name="transfers[{{ $i }}][lama_transfer]" class="sheet-input read-only" placeholder="" data-index="{{ $i }}" data-trans-type="lama_transfer" readonly>
                             </td>
                             <td class="photo-upload-cell">
-                                <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;">Maks. 6 foto</div>
                                 <div class="photo-selected-list" data-photo-selected></div>
                                 <label class="photo-upload-button">
                                     Pilih foto
                                     <input type="file" name="transfers[{{ $i }}][photos][]" accept="image/jpeg,image/png,image/webp" multiple data-photo-input>
                                 </label>
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">Maks. 6 foto</div>
                             </td>
                             <td class="row-action" style="text-align: center;"></td>
                         </tr>
@@ -1035,11 +1035,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const oldDesc = photoCell.querySelector('div[style*="font-size: 0.75rem"]');
                 if (oldDesc) oldDesc.remove();
                 
-                // Add new description
-                const desc = document.createElement('div');
-                desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;';
-                desc.textContent = 'Maks. 4 foto';
-                photoCell.insertBefore(desc, photoCell.firstChild);
+                // Add new description after the button
+                const uploadButton = photoCell.querySelector('.photo-upload-button');
+                if (uploadButton) {
+                    const desc = document.createElement('div');
+                    desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-top: 4px;';
+                    desc.textContent = 'Maks. 4 foto';
+                    uploadButton.after(desc);
+                }
             }
         });
         
