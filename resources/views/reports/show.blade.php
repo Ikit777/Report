@@ -544,7 +544,7 @@
     </div>
 
     <!-- A. LAPORAN HARIAN (MAIN TANK) - Outside Card -->
-    <h3 style="margin-top: 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+    <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         A. LAPORAN HARIAN (MAIN TANK)
     </h3>
 
@@ -797,7 +797,7 @@
         @endif
 
     <!-- B. TRANSFER SOLAR - Outside Card -->
-    <h3 style="margin-top: 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+    <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         B. TRANSFER SOLAR
     </h3>
 
@@ -893,7 +893,7 @@
     </div>
 
     <!-- C. PEMAKAIAN FLOWMETER - Outside Card -->
-    <h3 style="margin-top: 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+    <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         C. PEMAKAIAN FLOWMETER
     </h3>
 
