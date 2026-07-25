@@ -645,7 +645,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ===== FILTER TANKS BY SELECTED SITE =====
     const siteSelect = document.querySelector('select[name="site_id"]');
-    const tankSelects = () => document.querySelectorAll('.tank-select');
+    const tankSelects = () => document.querySelectorAll('.tank-select, .transfer-tank-select');
     
     function filterTanksBySite() {
         const selectedSiteId = siteSelect?.value;
