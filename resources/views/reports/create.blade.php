@@ -651,6 +651,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const removeButton = event.target.closest('[data-remove-row]');
             if (!removeButton) return;
             
+            // Add confirmation dialog
+            if (!confirm('Apakah Anda yakin ingin menghapus baris ini?')) {
+                return;
+            }
+            
             const currentRow = removeButton.closest('tr');
             const avgType = currentRow.dataset.avgType;
             
