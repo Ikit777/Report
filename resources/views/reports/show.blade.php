@@ -689,8 +689,10 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    </div>
 
-        @if(false)
+    @if(false)
         <!-- Right Capacity Statistics Widget -->
         @php
             // Real DB Capacities
@@ -897,7 +899,6 @@
             </tbody>
         </table>
     </div>
-    </div>
 
     @if(false)
             <thead>
@@ -1089,43 +1090,56 @@
             <p style="margin: 0 0 1rem; color: #64748b;">Dokumentasi Laporan Harian Fuelman</p>
             
             @php
-                // Group by section and attachment_key to get photos for same context
-                $groupedAttachments = $report->attachments
-                    ->sortBy(fn ($attachment) => $attachment->section . ':' . $attachment->attachment_key)
-                    ->groupBy(fn ($attachment) => $attachment->section . ':' . $attachment->attachment_key);
+                // Group by section first, then by attachment_key
+                $photosBySection = $report->attachments->groupBy('section');
             @endphp
             
-            @foreach($groupedAttachments as $groupKey => $photos)
+            @foreach($photosBySection as $section => $sectionPhotos)
+                <!-- Section Heading Outside Card -->
+                <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+                    {{ $section }}. {{ $section === 'A' ? 'LAPORAN HARIAN (MAIN TANK)' : 'TRANSFER SOLAR' }}
+                </h3>
+                
                 @php
-                    $firstPhoto = $photos->first();
-                    $photoCount = $photos->count();
+                    // Group by attachment_key within this section
+                    $groupedByContext = $sectionPhotos
+                        ->sortBy('attachment_key')
+                        ->groupBy('attachment_key');
                 @endphp
                 
-                <div class="photo-card" style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 1rem; background: white; margin-bottom: 1rem;">
-                    <!-- Header untuk group foto ini -->
-                    <div style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;">
-                        <div style="font-size: 10pt; font-weight: 700; color: #1e293b;">
-                            {{ $firstPhoto->context }}
+                @foreach($groupedByContext as $contextKey => $photos)
+                    @php
+                        $firstPhoto = $photos->first();
+                        $photoCount = $photos->count();
+                    @endphp
+                    
+                    <!-- Card with photos -->
+                    <div class="photo-card" style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 1rem; background: white; margin-bottom: 1rem;">
+                        <!-- Tank/Context Heading Inside Card -->
+                        <div style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-size: 10pt; font-weight: 700; color: #1e293b;">
+                                {{ $firstPhoto->context }}
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            @foreach($photos as $index => $attachment)
+                                <div class="photo-item">
+                                    <div style="font-size: 8.5pt; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">
+                                        Foto {{ $index + 1 }}
+                                    </div>
+                                    <img src="{{ $attachment->getPublicUrl() }}" 
+                                         alt="Foto {{ $index + 1 }}" 
+                                         style="display: block; width: 100%; height: 280px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc;">
+                                </div>
+                            @endforeach
+                            
+                            @if($photoCount === 1)
+                                <div></div>
+                            @endif
                         </div>
                     </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        @foreach($photos as $index => $attachment)
-                            <div class="photo-item">
-                                <div style="font-size: 8.5pt; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">
-                                    Foto {{ $index + 1 }}
-                                </div>
-                                <img src="{{ $attachment->getPublicUrl() }}" 
-                                     alt="Foto {{ $index + 1 }}" 
-                                     style="display: block; width: 100%; height: 280px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc;">
-                            </div>
-                        @endforeach
-                        
-                        @if($photoCount === 1)
-                            <div></div>
-                        @endif
-                    </div>
-                </div>
+                @endforeach
             @endforeach
         </section>
     @endif
