@@ -544,7 +544,7 @@
     </div>
 
     <!-- A. LAPORAN HARIAN (MAIN TANK) - Outside Card -->
-    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+    <h3 style="margin-top: 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         A. LAPORAN HARIAN (MAIN TANK)
     </h3>
 
@@ -797,7 +797,7 @@
         @endif
 
     <!-- B. TRANSFER SOLAR - Outside Card -->
-    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+    <h3 style="margin-top: 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         B. TRANSFER SOLAR
     </h3>
 
@@ -893,7 +893,7 @@
     </div>
 
     <!-- C. PEMAKAIAN FLOWMETER - Outside Card -->
-    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
+    <h3 style="margin-top: 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         C. PEMAKAIAN FLOWMETER
     </h3>
 
@@ -1047,7 +1047,7 @@
 
     @endif
     <!-- TANDA TANGAN (Bottom, Right-Aligned) -->
-    <div style="display: flex; justify-content: flex-end; margin-top: 2.5rem; padding-top: 1rem;" class="sheet-signers">
+    <div style="display: flex; justify-content: flex-end; margin-top: 3.5rem; padding-top: 1rem;" class="sheet-signers">
         <div style="display: flex; gap: 2rem; font-size: 9pt;">
             <div style="text-align: center; width: 180px;">
                 <p style="font-weight: 600; color: #475569; margin-bottom: 0;">Dibuat Oleh</p>
