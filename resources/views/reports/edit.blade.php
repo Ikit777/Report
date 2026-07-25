@@ -718,24 +718,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function enableRowRemoval(rowsContainer, fieldGroup) {
-        console.log('enableRowRemoval called for:', fieldGroup, rowsContainer);
-        if (!rowsContainer) {
-            console.error('rowsContainer is NULL for fieldGroup:', fieldGroup);
-            return;
-        }
-        
         rowTemplates.set(rowsContainer, rowsContainer.querySelector('tr').cloneNode(true));
         refreshDynamicRows(rowsContainer, fieldGroup);
         rowsContainer.addEventListener('click', async event => {
-            console.log('Row container clicked, target:', event.target);
             const removeButton = event.target.closest('[data-remove-row]');
-            console.log('Remove button found:', removeButton);
             if (!removeButton) return;
             
             // Show custom confirmation dialog
-            console.log('Showing confirmation dialog');
             const confirmed = await window.showConfirmDialog('Apakah Anda yakin ingin menghapus baris ini?');
-            console.log('Dialog result:', confirmed);
             if (!confirmed) return;
             
             const currentRow = removeButton.closest('tr');
@@ -1238,12 +1228,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => liter.value = data.volume ?? '')
             .catch(() => liter.value = '');
     });
-    const addReportItemBtn = document.getElementById('addReportItemRow');
-    console.log('ADD REPORT ITEM BUTTON:', addReportItemBtn);
-    if (addReportItemBtn) {
-        addReportItemBtn.addEventListener('click', () => {
-            console.log('ADD REPORT ITEM CLICKED');
-            const index = reportItemRows.querySelectorAll('tr').length;
+    document.getElementById('addReportItemRow').addEventListener('click', () => {
+        const index = reportItemRows.querySelectorAll('tr').length;
         const row = (reportItemRows.querySelector('tr') || rowTemplates.get(reportItemRows)).cloneNode(true);
         row.querySelector('td').textContent = index + 1;
         row.querySelectorAll('input, select').forEach(field => {
@@ -1255,15 +1241,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         row.querySelector('[data-photo-selected]').replaceChildren();
+        row.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         row.querySelector('input[name$="[attachment_key]"]')?.remove();
         row.querySelector('[data-item-type="tank_id"]').selectedIndex = 0;
         updateItemMainHole(row);
         reportItemRows.appendChild(row);
         refreshDynamicRows(reportItemRows, 'items');
-        });
-    } else {
-        console.error('Button addReportItemRow NOT FOUND');
-    }
+    });
 
     // --- Section B: Transfer Solar Autocalculations ---
     function calculateLamaTransfer(index) {
@@ -1388,12 +1372,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     document.querySelectorAll('input[data-trans-type="jam_mulai"]').forEach(input => calculateLamaTransfer(input.dataset.index));
 
-    const addTransferBtn = document.getElementById('addTransferRow');
-    console.log('ADD TRANSFER BUTTON:', addTransferBtn);
-    if (addTransferBtn) {
-        addTransferBtn.addEventListener('click', () => {
-            console.log('ADD TRANSFER CLICKED');
-            const index = transferRows.querySelectorAll('tr').length;
+    document.getElementById('addTransferRow').addEventListener('click', () => {
+        const index = transferRows.querySelectorAll('tr').length;
         const row = (transferRows.querySelector('tr') || rowTemplates.get(transferRows)).cloneNode(true);
 
         row.querySelector('td').textContent = index + 1;
@@ -1404,13 +1384,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         row.querySelectorAll('select').forEach(field => field.selectedIndex = 0);
         row.querySelector('[data-photo-selected]').replaceChildren();
+        row.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         row.querySelector('input[name$="[attachment_key]"]')?.remove();
         transferRows.appendChild(row);
         refreshDynamicRows(transferRows, 'transfers');
-        });
-    } else {
-        console.error('Button addTransferRow NOT FOUND');
-    }
+    });
 
     // --- Section C: Pemakaian Flowmeter ---
     function calculateFlowmeterUsage(index) {
@@ -1443,12 +1421,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     document.querySelectorAll('input[data-flow-type="awal_pagi"]').forEach(input => calculateFlowmeterUsage(input.dataset.index));
 
-    const addFlowmeterBtn = document.getElementById('addFlowmeterRow');
-    console.log('ADD FLOWMETER BUTTON:', addFlowmeterBtn);
-    if (addFlowmeterBtn) {
-        addFlowmeterBtn.addEventListener('click', () => {
-            console.log('ADD FLOWMETER CLICKED');
-            const index = flowmeterRows.querySelectorAll('tr').length;
+    document.getElementById('addFlowmeterRow').addEventListener('click', () => {
+        const index = flowmeterRows.querySelectorAll('tr').length;
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="row-number" style="text-align: center;">${index + 1}</td>
@@ -1461,10 +1435,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <td class="row-action" style="text-align: center;"></td>`;
         flowmeterRows.appendChild(row);
         refreshDynamicRows(flowmeterRows, 'flowmeters');
-        });
-    } else {
-        console.error('Button addFlowmeterRow NOT FOUND');
-    }
+    });
 
     const syncSelectedPhotos = input => {
         const transfer = new DataTransfer();
