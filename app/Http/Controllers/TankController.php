@@ -146,6 +146,7 @@ class TankController extends Controller
 
         $tanks = Tank::with('site')
             ->join('sites', 'tanks.site_id', '=', 'sites.id')
+            ->where('tanks.is_active', true)
             ->orderBy('sites.code')
             ->orderBy('tanks.code')
             ->orderBy('tanks.main_hole')

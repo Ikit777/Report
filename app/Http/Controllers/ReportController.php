@@ -83,7 +83,7 @@ class ReportController extends Controller
 
         // Load ALL active tanks ordered by site first, then by code alphabetically
         $tanks = Tank::with('site')
-            ->where('is_active', true)
+            ->where('tanks.is_active', true)
             ->join('sites', 'tanks.site_id', '=', 'sites.id')
             ->orderBy('sites.code')
             ->orderBy('tanks.code')
@@ -289,7 +289,7 @@ class ReportController extends Controller
         
         // Load ALL active tanks ordered by site first, then alphabetically
         $tanks = Tank::with('site')
-            ->where('is_active', true)
+            ->where('tanks.is_active', true)
             ->join('sites', 'tanks.site_id', '=', 'sites.id')
             ->orderBy('sites.code')
             ->orderBy('tanks.code')
