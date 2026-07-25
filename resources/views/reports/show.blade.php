@@ -197,7 +197,18 @@
         border-radius: 8px;
         padding: 0.75rem;
         break-inside: avoid;
+        page-break-inside: avoid;
         background: white;
+    }
+
+    .photo-card {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 1rem;
+        background: white;
+        margin-bottom: 1rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .attachment-card img {
@@ -396,6 +407,17 @@
             font-size: 7.5pt !important;
             margin-bottom: 0.3rem !important;
         }
+
+        /* Photo cards - prevent page break inside */
+        .photo-card {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .attachment-page h3 {
+            page-break-after: avoid !important;
+        }
     }
 </style>
 @endsection
@@ -548,7 +570,7 @@
         A. LAPORAN HARIAN (MAIN TANK)
     </h3>
 
-    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div class="table-responsive">
             <table class="sheet-table" style="border-collapse: collapse; width: 100%;">
                 <thead>
@@ -801,7 +823,7 @@
         B. TRANSFER SOLAR
     </h3>
 
-    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div class="table-responsive">
         <table class="sheet-table" style="border-collapse: collapse; width: 100%;">
             <thead>
@@ -897,7 +919,7 @@
         C. PEMAKAIAN FLOWMETER
     </h3>
 
-    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div class="table-responsive">
             <table class="sheet-table" style="border-collapse: collapse; width: 100%;">
             <thead>
