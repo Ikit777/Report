@@ -89,12 +89,12 @@
                         <th rowspan="2" style="width: 70px;">AKSI</th>
                     </tr>
                     <tr>
-                        <th class="section-pagi" style="width: 80px;">SONDING (cm)</th>
-                        <th class="section-pagi" style="width: 90px;">LITER</th>
+                        <th class="section-pagi" style="width: 100px;">SONDING (cm)</th>
+                        <th class="section-pagi" style="width: 110px;">LITER</th>
                         <th class="section-pagi" style="width: 85px;">JAM SONDING</th>
                         <th class="section-pagi" style="width: 120px;">NAMA PETUGAS</th>
-                        <th class="section-sore" style="width: 80px;">SONDING (cm)</th>
-                        <th class="section-sore" style="width: 90px;">LITER</th>
+                        <th class="section-sore" style="width: 100px;">SONDING (cm)</th>
+                        <th class="section-sore" style="width: 110px;">LITER</th>
                         <th class="section-sore" style="width: 85px;">JAM SONDING</th>
                         <th class="section-sore" style="width: 120px;">NAMA PETUGAS</th>
                         <th class="section-fm" style="width: 100px;">PAGI</th>

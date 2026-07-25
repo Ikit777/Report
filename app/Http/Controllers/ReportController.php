@@ -81,11 +81,14 @@ class ReportController extends Controller
             abort(403, 'Hanya Fuelman yang dapat membuat laporan baru.');
         }
 
-        // Load ALL active tanks (user will select site in form, tanks will be there)
-        // This is necessary because form doesn't dynamically reload on site change
-        $tanks = Tank::where('is_active', true)
-            ->orderBy('code')
-            ->orderBy('main_hole')
+        // Load ALL active tanks ordered by site first, then by code alphabetically
+        $tanks = Tank::with('site')
+            ->where('is_active', true)
+            ->join('sites', 'tanks.site_id', '=', 'sites.id')
+            ->orderBy('sites.code')
+            ->orderBy('tanks.code')
+            ->orderBy('tanks.main_hole')
+            ->select('tanks.*')
             ->get();
         
         $defaultDate = now()->format('Y-m-d');
@@ -284,10 +287,14 @@ class ReportController extends Controller
         $transfers = $report->transfers;
         $flowmeters = $report->flowmeters;
         
-        // Load ALL active tanks, JavaScript will filter by site
-        $tanks = Tank::where('is_active', true)
-            ->orderBy('code')
-            ->orderBy('main_hole')
+        // Load ALL active tanks ordered by site first, then alphabetically
+        $tanks = Tank::with('site')
+            ->where('is_active', true)
+            ->join('sites', 'tanks.site_id', '=', 'sites.id')
+            ->orderBy('sites.code')
+            ->orderBy('tanks.code')
+            ->orderBy('tanks.main_hole')
+            ->select('tanks.*')
             ->get();
         $sites = \App\Models\Site::where('is_active', true)->orderBy('code')->get();
 
