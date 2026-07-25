@@ -581,17 +581,8 @@
                         $totFmSore = 0;
                         $totFmPakai = 0;
                         $summaryTanks = [];
-                        $tankCounter = 1;
                     @endphp
                     @foreach($groupedItems as $tankCode => $items)
-                        <!-- Tank Heading -->
-                        <tr style="background-color: #f8fafc;">
-                            <td colspan="15" style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.95rem; color: #1e293b;">
-                                {{ $tankCounter }}. Tangki {{ $tankCode }} — {{ strtoupper($items->first()->tank->main_hole) }}
-                            </td>
-                        </tr>
-                        @php $tankCounter++; @endphp
-                        
                         @foreach($items as $subIndex => $item)
                             @php
                                 $isAvgRow = ($item->tank->code === 'SPM3' && $item->tank->main_hole === '(D+B)/2');
@@ -690,7 +681,7 @@
             </table>
         </div>
     </div>
-    </div>
+  
 
     @if(false)
         <!-- Right Capacity Statistics Widget -->
@@ -1082,6 +1073,7 @@
                 @endif
             </div>
         </div>
+    </div>
     </div>
 
     @if($report->attachments->isNotEmpty())
