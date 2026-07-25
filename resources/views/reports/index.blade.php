@@ -21,15 +21,14 @@
 
 <!-- Filter & Search Section -->
 <div class="card-table-container" style="margin-bottom: 1.5rem;">
-    <form method="GET" action="{{ route('reports.index') }}" class="form-row" style="display: grid; grid-template-columns: {{ $sites ? '2fr 1fr 1fr 1fr 1fr' : '2fr 1fr 1fr 1fr' }}; gap: 1rem; align-items: end;">
+    <form method="GET" action="{{ route('reports.index') }}" class="form-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 1rem; align-items: end;">
         <!-- Pencarian - Paling kiri dan lebih lebar -->
         <div class="form-group" style="margin-bottom: 0;">
             <label for="search">Pencarian</label>
             <input type="text" name="search" id="search" class="form-control" placeholder="Cari tanggal, nama..." value="{{ $search ?? '' }}">
         </div>
         
-        <!-- Site (jika ada) -->
-        @if($sites)
+        <!-- Site -->
         <div class="form-group" style="margin-bottom: 0;">
             <label for="site_id">Site / Lokasi</label>
             <select name="site_id" id="site_id" class="form-control">
@@ -41,7 +40,6 @@
                 @endforeach
             </select>
         </div>
-        @endif
         
         <!-- Status -->
         <div class="form-group" style="margin-bottom: 0;">
@@ -116,9 +114,7 @@
                 <tr>
                     <th>Tanggal Laporan</th>
                     <th>Hari</th>
-                    @if($sites)
-                        <th>Site / Lokasi</th>
-                    @endif
+                    <th>Site / Lokasi</th>
                     <th>Dibuat Oleh (Fuelman)</th>
                     <th>GL Pemverifikasi</th>
                     <th>SPV Penyetuju</th>
@@ -136,9 +132,7 @@
                     <tr>
                         <td><strong>{{ $report->date->format('d-m-Y') }}</strong></td>
                         <td>{{ $dayName }}</td>
-                        @if($sites)
-                            <td>{{ $report->site ? $report->site->name : '-' }}</td>
-                        @endif
+                        <td>{{ $report->site ? $report->site->name : '-' }}</td>
                         <td>{{ $report->fuelman->name }}</td>
                         <td>{{ $report->gl ? $report->gl->name : '-' }}</td>
                         <td>{{ $report->spv ? $report->spv->name : '-' }}</td>
@@ -196,7 +190,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $sites ? 8 : 7 }}" style="text-align: center; color: var(--text-muted);">
+                        <td colspan="8" style="text-align: center; color: var(--text-muted);">
                             @if($search || $siteId || $status)
                                 Tidak ada laporan yang sesuai dengan filter.
                             @else

@@ -168,7 +168,7 @@
 @if(Auth::user()->isSpv())
     <div class="card-table-container">
         @if($todayReport)
-            <h2 class="card-title">Kondisi Stok & Sounding Terkini (Laporan Hari Ini: {{ $todayReport->date->format('d-m-Y') }})</h2>
+            <h2 class="card-title">Kondisi Stok & Sounding Terkini ({{ $todayReport->site ? $todayReport->site->name : 'Site' }} - {{ $todayReport->date->format('d-m-Y') }})</h2>
             <div class="table-responsive">
                 <table class="table-list">
                     <thead>
@@ -232,6 +232,7 @@
             <thead>
                 <tr>
                     <th>Tanggal Laporan</th>
+                    <th>Site / Lokasi</th>
                     <th>Pembuat (Fuelman)</th>
                     <th>Status</th>
                     <th style="text-align: center;">Aksi</th>
@@ -241,6 +242,7 @@
                 @forelse($recentReports as $report)
                     <tr>
                         <td><strong>{{ $report->date->format('d-m-Y') }}</strong></td>
+                        <td>{{ $report->site ? $report->site->name : '-' }}</td>
                         <td>{{ $report->fuelman->name }}</td>
                         <td>
                             @if($report->status === 'draft')
@@ -296,7 +298,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" style="text-align: center; color: var(--text-muted);">Belum ada laporan harian yang dibuat.</td>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted);">Belum ada laporan harian yang dibuat.</td>
                     </tr>
                 @endforelse
             </tbody>

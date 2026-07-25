@@ -26,7 +26,8 @@ class DashboardController extends Controller
             $stats['approved'] = DailyReport::where('fuelman_id', $user->id)->where('status', 'approved')->count();
             $stats['rejected'] = DailyReport::where('fuelman_id', $user->id)->where('status', 'rejected')->count();
             
-            $recentReports = DailyReport::where('fuelman_id', $user->id)
+            $recentReports = DailyReport::with(['fuelman', 'gl', 'spv', 'site'])
+                ->where('fuelman_id', $user->id)
                 ->orderBy('date', 'desc')
                 ->limit(5)
                 ->get();
@@ -50,7 +51,8 @@ class DashboardController extends Controller
             $stats['total_approved'] = DailyReport::where('status', 'approved')->count();
             $stats['total_rejected_by_me'] = DailyReport::where('status', 'rejected')->where('gl_id', $user->id)->count();
 
-            $recentReports = DailyReport::orderBy('date', 'desc')
+            $recentReports = DailyReport::with(['fuelman', 'gl', 'spv', 'site'])
+                ->orderBy('date', 'desc')
                 ->limit(5)
                 ->get();
 
@@ -66,7 +68,8 @@ class DashboardController extends Controller
             $stats['approved_by_me'] = DailyReport::where('status', 'approved')->where('spv_id', $user->id)->count();
             $stats['total_reports'] = DailyReport::count();
             
-            $recentReports = DailyReport::orderBy('date', 'desc')
+            $recentReports = DailyReport::with(['fuelman', 'gl', 'spv', 'site'])
+                ->orderBy('date', 'desc')
                 ->limit(5)
                 ->get();
 
@@ -84,7 +87,8 @@ class DashboardController extends Controller
 
             // Sounding status for active tanks (TODAY'S report only)
             $today = date('Y-m-d');
-            $todayReport = DailyReport::whereDate('date', $today)
+            $todayReport = DailyReport::with('site')
+                ->whereDate('date', $today)
                 ->orderBy('created_at', 'desc')
                 ->first();
 

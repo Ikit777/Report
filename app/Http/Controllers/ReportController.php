@@ -19,11 +19,8 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         
-        // Get all active sites for dropdown (GL/SPV only)
-        $sites = null;
-        if ($user->isGl() || $user->isSpv()) {
-            $sites = Site::where('is_active', true)->orderBy('name')->get();
-        }
+        // Get all active sites for dropdown (ALL roles)
+        $sites = Site::where('is_active', true)->orderBy('name')->get();
         
         // Get filter parameters
         $siteId = $request->get('site_id');
@@ -44,8 +41,8 @@ class ReportController extends Controller
             $query->where('fuelman_id', $user->id);
         }
         
-        // Filter by site if selected (GL/SPV only)
-        if (($user->isGl() || $user->isSpv()) && $siteId) {
+        // Filter by site if selected (ALL roles)
+        if ($siteId) {
             $query->where('site_id', $siteId);
         }
         
