@@ -1078,11 +1078,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const oldDesc = photoCell.querySelector('div[style*="font-size: 0.75rem"]');
                 if (oldDesc) oldDesc.remove();
                 
-                // Add new description
-                const desc = document.createElement('div');
-                desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;';
-                desc.textContent = 'Maks. 4 foto';
-                photoCell.insertBefore(desc, photoCell.firstChild);
+                // Add new description after the button
+                const uploadButton = photoCell.querySelector('.photo-upload-button');
+                if (uploadButton) {
+                    const desc = document.createElement('div');
+                    desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-top: 4px;';
+                    desc.textContent = 'Maks. 4 foto';
+                    uploadButton.after(desc);
+                }
             }
         });
         

@@ -55,7 +55,6 @@
                         $photoLimitText = 'Maks. 4 foto';
                     }
                 @endphp
-                <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;">{{ $photoLimitText }}</div>
                 <div class="photo-selected-list" data-photo-selected>
                     @if($existingAttachments->isNotEmpty())
                         @foreach($existingAttachments as $attachment)
@@ -72,6 +71,7 @@
                     Pilih foto
                     <input type="file" name="items[{{ $i }}][photos][]" accept="image/jpeg,image/png,image/webp" multiple data-photo-input>
                 </label>
+                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">{{ $photoLimitText }}</div>
             </td>
             <td class="row-action" style="text-align: center;"></td>
         </tr>
