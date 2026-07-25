@@ -875,8 +875,8 @@
                         </td>
                         
                         <!-- FM -->
-                        <td style="text-align: right; padding-right: 8px;">{{ $transfer->fm_awal !== null ? number_format($transfer->fm_awal, 0, ',', '.') : '' }}</td>
-                        <td style="text-align: right; padding-right: 8px;">{{ $transfer->fm_akhir !== null ? number_format($transfer->fm_akhir, 0, ',', '.') : '' }}</td>
+                        <td style="text-align: right; padding-right: 8px;">{{ $transfer->fm_awal !== null ? $transfer->fm_awal : '' }}</td>
+                        <td style="text-align: right; padding-right: 8px;">{{ $transfer->fm_akhir !== null ? $transfer->fm_akhir : '' }}</td>
                         <td class="val-pakai" style="text-align: right; padding-right: 8px; font-weight: bold;">
                             {{ $transfer->fm_jumlah !== null ? number_format($transfer->fm_jumlah, 0, ',', '.') : '' }}
                         </td>
@@ -1105,9 +1105,6 @@
                     <!-- Header untuk group foto ini -->
                     <div style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;">
                         <div style="font-size: 10pt; font-weight: 700; color: #1e293b;">
-                            Bagian {{ $firstPhoto->section }} — {{ $firstPhoto->section === 'A' ? 'Laporan Harian Main Tank' : 'Transfer Solar' }}
-                        </div>
-                        <div style="font-size: 8.5pt; color: #475569; margin-top: 0.25rem;">
                             {{ $firstPhoto->context }}
                         </div>
                     </div>
