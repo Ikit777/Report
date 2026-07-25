@@ -139,6 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/tanks/{id}', [TankController::class, 'destroy'])->name('tanks.destroy')->middleware('role:spv,admin');
     Route::get('/tanks/{id}/calibration', [TankController::class, 'calibration'])->name('tanks.calibration')->middleware('role:spv,admin');
     Route::post('/tanks/{id}/calibration', [TankController::class, 'updateCalibration'])->name('tanks.calibration.update')->middleware('role:spv,admin');
+    Route::get('/tanks/{tank_id}/volume', [TankController::class, 'getVolume'])->name('tanks.volume');
     
     // Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('role:spv,admin');

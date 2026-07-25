@@ -768,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Set loading styling/opacity momentarily
             targetLiterInput.style.opacity = '0.5';
 
-            fetch(`/api/tanks/${tankId}/volume?sounding=${soundingVal}`)
+            fetch(`/tanks/${tankId}/volume?sounding=${soundingVal}`)
                 .then(response => response.json())
                 .then(data => {
                     targetLiterInput.style.opacity = '1';
@@ -846,6 +846,143 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelector('.item-main-hole').textContent = select.selectedOptions[0]?.dataset.mainHole || '-';
     };
     reportItemRows.querySelectorAll('tr').forEach(updateItemMainHole);
+    
+    // Handle (DEPAN + BELAKANG) / 2 tank auto-generation
+    const handleAvgMainHoleTank = (row) => {
+        const select = row.querySelector('[data-item-type="tank_id"]');
+        const mainHole = select.selectedOptions[0]?.dataset.mainHole || '';
+        
+        // Check if main_hole is "(DEPAN + BELAKANG) / 2"
+        if (mainHole !== '(DEPAN + BELAKANG) / 2') {
+            return;
+        }
+        
+        // Get current row index
+        const rowIndex = Array.from(reportItemRows.querySelectorAll('tr')).indexOf(row);
+        
+        // Check if next 2 rows already exist with same tank (to avoid duplicate generation)
+        const allRows = Array.from(reportItemRows.querySelectorAll('tr'));
+        const nextRow = allRows[rowIndex + 1];
+        const nextNextRow = allRows[rowIndex + 2];
+        
+        const currentTankId = select.value;
+        if (nextRow && nextNextRow) {
+            const nextTankId = nextRow.querySelector('[data-item-type="tank_id"]')?.value;
+            const nextNextTankId = nextNextRow.querySelector('[data-item-type="tank_id"]')?.value;
+            if (nextTankId === currentTankId && nextNextTankId === currentTankId) {
+                // Already generated, skip
+                return;
+            }
+        }
+        
+        // Change current row to DEPAN
+        const currentMainHoleCell = row.querySelector('.item-main-hole');
+        currentMainHoleCell.textContent = 'DEPAN';
+        row.dataset.avgType = 'depan';
+        
+        // Create BELAKANG row
+        const belakangIndex = reportItemRows.querySelectorAll('tr').length;
+        const belakangRow = row.cloneNode(true);
+        belakangRow.querySelector('.row-number').textContent = belakangIndex + 1;
+        belakangRow.querySelector('.item-main-hole').textContent = 'BELAKANG';
+        belakangRow.dataset.avgType = 'belakang';
+        
+        // Update name attributes for BELAKANG row
+        belakangRow.querySelectorAll('input, select').forEach(field => {
+            field.name = field.name.replace(/items\[\d+\]/, `items[${belakangIndex}]`);
+            // Clear values except tank_id
+            if (!field.matches('[data-item-type="tank_id"]')) {
+                field.value = '';
+            }
+        });
+        belakangRow.querySelector('[data-photo-selected]').replaceChildren();
+        belakangRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
+        
+        // Set liter fields to XXXX for BELAKANG
+        belakangRow.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
+        belakangRow.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
+        
+        // Create (D+B)/2 row
+        const avgIndex = belakangIndex + 1;
+        const avgRow = row.cloneNode(true);
+        avgRow.querySelector('.row-number').textContent = avgIndex + 1;
+        avgRow.querySelector('.item-main-hole').textContent = '(D+B)/2';
+        avgRow.dataset.avgType = 'average';
+        
+        // Update name attributes for average row
+        avgRow.querySelectorAll('input, select').forEach(field => {
+            field.name = field.name.replace(/items\[\d+\]/, `items[${avgIndex}]`);
+            // Clear values except tank_id
+            if (!field.matches('[data-item-type="tank_id"]')) {
+                field.value = '';
+            }
+            // Make sounding inputs readonly for average row
+            if (field.matches('[data-item-type="sounding_pagi"], [data-item-type="sounding_sore"]')) {
+                field.classList.add('read-only');
+                field.setAttribute('readonly', 'readonly');
+            }
+        });
+        avgRow.querySelector('[data-photo-selected]').replaceChildren();
+        avgRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
+        
+        // Insert rows after current row
+        row.after(belakangRow);
+        belakangRow.after(avgRow);
+        
+        // Set liter fields to XXXX for DEPAN (current row)
+        row.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
+        row.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
+        
+        // Refresh row numbers
+        refreshDynamicRows(reportItemRows, 'items');
+        
+        // Setup auto-calculation when DEPAN or BELAKANG sounding changes
+        setupAvgCalculation(row, belakangRow, avgRow, currentTankId);
+    };
+    
+    const setupAvgCalculation = (depanRow, belakangRow, avgRow, tankId) => {
+        const calculate = (period) => {
+            const depanSounding = parseFloat(depanRow.querySelector(`[data-item-type="sounding_${period}"]`).value);
+            const belakangSounding = parseFloat(belakangRow.querySelector(`[data-item-type="sounding_${period}"]`).value);
+            const avgInput = avgRow.querySelector(`[data-item-type="sounding_${period}"]`);
+            const avgLiterInput = avgRow.querySelector(`[data-item-type="liter_${period}"]`);
+            
+            if (!isNaN(depanSounding) && !isNaN(belakangSounding)) {
+                const avgSounding = ((depanSounding + belakangSounding) / 2).toFixed(2);
+                avgInput.value = avgSounding;
+                
+                // Fetch liter from calibration based on average sounding
+                avgLiterInput.style.opacity = '0.5';
+                fetch(`/tanks/${tankId}/volume?sounding=${avgSounding}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        avgLiterInput.style.opacity = '1';
+                        if (data.volume !== null && data.volume !== undefined) {
+                            avgLiterInput.value = data.volume;
+                        } else {
+                            avgLiterInput.value = 'XXXX';
+                        }
+                    })
+                    .catch(err => {
+                        avgLiterInput.style.opacity = '1';
+                        avgLiterInput.value = 'XXXX';
+                        console.error('Error fetching volume calibration:', err);
+                    });
+            } else {
+                avgInput.value = '';
+                avgLiterInput.value = '';
+            }
+        };
+        
+        // Listen to DEPAN sounding changes
+        depanRow.querySelector('[data-item-type="sounding_pagi"]').addEventListener('input', () => calculate('pagi'));
+        depanRow.querySelector('[data-item-type="sounding_sore"]').addEventListener('input', () => calculate('sore'));
+        
+        // Listen to BELAKANG sounding changes
+        belakangRow.querySelector('[data-item-type="sounding_pagi"]').addEventListener('input', () => calculate('pagi'));
+        belakangRow.querySelector('[data-item-type="sounding_sore"]').addEventListener('input', () => calculate('sore'));
+    };
+    
     const updateItemCalculations = row => {
         const pagi = parseFloat(row.querySelector('[data-item-type="fm_pagi"]').value);
         const sore = parseFloat(row.querySelector('[data-item-type="fm_sore"]').value);
@@ -867,7 +1004,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     reportItemRows.addEventListener('change', event => {
         if (event.target.matches('[data-item-type="tank_id"]')) {
-            updateItemMainHole(event.target.closest('tr'));
+            const row = event.target.closest('tr');
+            updateItemMainHole(row);
+            handleAvgMainHoleTank(row);
             return;
         }
         if (!event.target.matches('[data-item-type="sounding_pagi"], [data-item-type="sounding_sore"]')) return;
@@ -884,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
-        fetch(`/api/tanks/${tankId}/volume?sounding=${sounding}`)
+        fetch(`/tanks/${tankId}/volume?sounding=${sounding}`)
             .then(response => response.json())
             .then(data => liter.value = data.volume ?? '')
             .catch(() => liter.value = '');
@@ -951,8 +1090,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             Promise.all([
-                fetch(`/api/tanks/${tankId}/volume?sounding=${awal}`).then(response => response.json()),
-                fetch(`/api/tanks/${tankId}/volume?sounding=${akhir}`).then(response => response.json()),
+                fetch(`/tanks/${tankId}/volume?sounding=${awal}`).then(response => response.json()),
+                fetch(`/tanks/${tankId}/volume?sounding=${akhir}`).then(response => response.json()),
             ])
                 .then(([awalData, akhirData]) => {
                     if (awalData.volume === null || awalData.volume === undefined || akhirData.volume === null || akhirData.volume === undefined) {
