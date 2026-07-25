@@ -965,6 +965,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const reportItemRows = document.getElementById('reportItemRows');
     enableRowRemoval(reportItemRows, 'items');
     refreshDynamicRows(reportItemRows, 'items'); // Add initial refresh to show delete buttons
+    
+    // Force add delete buttons to all existing rows (for edit page)
+    reportItemRows.querySelectorAll('tr').forEach(row => {
+        const actionCell = row.querySelector('.row-action');
+        if (actionCell && !actionCell.hasAttribute('rowspan') && !actionCell.querySelector('[data-remove-row]')) {
+            actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
+        }
+    });
+    
     const updateItemMainHole = row => {
         const select = row.querySelector('[data-item-type="tank_id"]');
         row.querySelector('.item-main-hole').textContent = select.selectedOptions[0]?.dataset.mainHole || '-';
@@ -1268,6 +1277,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const transferRows = document.getElementById('transferRows');
     enableRowRemoval(transferRows, 'transfers');
     refreshDynamicRows(transferRows, 'transfers'); // Add initial refresh to show delete buttons
+    
+    // Force add delete buttons to all existing rows
+    transferRows.querySelectorAll('tr').forEach(row => {
+        const actionCell = row.querySelector('.row-action');
+        if (actionCell && !actionCell.hasAttribute('rowspan') && !actionCell.querySelector('[data-remove-row]')) {
+            actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
+        }
+    });
+    
     transferRows.addEventListener('input', event => {
         if (!event.target.matches('input[data-trans-type]')) return;
         const index = event.target.dataset.index;
@@ -1356,6 +1374,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const flowmeterRows = document.getElementById('flowmeterRows');
     enableRowRemoval(flowmeterRows, 'flowmeters');
     refreshDynamicRows(flowmeterRows, 'flowmeters'); // Add initial refresh to show delete buttons
+    
+    // Force add delete buttons to all existing rows
+    flowmeterRows.querySelectorAll('tr').forEach(row => {
+        const actionCell = row.querySelector('.row-action');
+        if (actionCell && !actionCell.hasAttribute('rowspan') && !actionCell.querySelector('[data-remove-row]')) {
+            actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
+        }
+    });
+    
     flowmeterRows.addEventListener('input', event => {
         if (event.target.matches('input[data-flow-type="awal_pagi"], input[data-flow-type="akhir_sore"]')) {
             calculateFlowmeterUsage(event.target.dataset.index);
