@@ -1342,13 +1342,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const index = flowmeterRows.querySelectorAll('tr').length;
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td style="text-align: center;">${index + 1}</td>
+            <td class="row-number" style="text-align: center;">${index + 1}</td>
             <td><input type="text" name="flowmeters[${index}][unit]" class="sheet-input"></td>
             <td><input type="text" name="flowmeters[${index}][jenis_flowmeter]" class="sheet-input"></td>
             <td><input type="text" name="flowmeters[${index}][nomor_seri]" class="sheet-input"></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][awal_pagi]" class="sheet-input" data-index="${index}" data-flow-type="awal_pagi"></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][akhir_sore]" class="sheet-input" data-index="${index}" data-flow-type="akhir_sore"></td>
-            <td><input type="number" step="1" name="flowmeters[${index}][jumlah_pakai]" class="sheet-input read-only" data-index="${index}" data-flow-type="jumlah_pakai" readonly></td>`;
+            <td><input type="number" step="1" name="flowmeters[${index}][jumlah_pakai]" class="sheet-input read-only" data-index="${index}" data-flow-type="jumlah_pakai" readonly></td>
+            <td class="row-action" style="text-align: center;"></td>`;
         flowmeterRows.appendChild(row);
         refreshDynamicRows(flowmeterRows, 'flowmeters');
     });

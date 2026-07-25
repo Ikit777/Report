@@ -46,7 +46,16 @@
                     $existingAttachments = $savedItem && isset($report)
                         ? $report->attachments->where('section', 'A')->whereIn('attachment_key', ["item-{$savedItem->tank_id}", "item-{$savedItem->id}"])
                         : collect();
+                    
+                    // Determine photo limit based on tank main_hole
+                    $photoLimit = 8; // default for normal tanks
+                    $photoLimitText = 'Maks. 8 foto';
+                    if ($selectedTank && str_contains($selectedTank->main_hole, 'DEPAN + BELAKANG')) {
+                        $photoLimit = 4;
+                        $photoLimitText = 'Maks. 4 foto';
+                    }
                 @endphp
+                <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;">{{ $photoLimitText }}</div>
                 <div class="photo-selected-list" data-photo-selected>
                     @if($existingAttachments->isNotEmpty())
                         @foreach($existingAttachments as $attachment)

@@ -85,7 +85,7 @@
                         <th colspan="4" class="section-sore">SONDING SORE</th>
                         <th colspan="3" class="section-fm">ANGKA FM KECIL</th>
                         <th rowspan="2" style="width: 180px;">KETERANGAN</th>
-                        <th rowspan="2" class="photo-upload-heading" style="width: 260px;">FOTO (MAKS. 2)</th>
+                        <th rowspan="2" class="photo-upload-heading" style="width: 260px;">FOTO</th>
                         <th rowspan="2" style="width: 70px;">AKSI</th>
                     </tr>
                     <tr>
@@ -368,7 +368,7 @@
                         <th colspan="3">FLOW METER</th>
                         <th colspan="2">JAM TRANSFER</th>
                         <th rowspan="2" style="width: 90px;">LAMA TRANSFER</th>
-                        <th rowspan="2" class="photo-upload-heading" style="width: 260px;">FOTO (MAKS. 2)</th>
+                        <th rowspan="2" class="photo-upload-heading" style="width: 260px;">FOTO</th>
                         <th rowspan="2" style="width: 70px;">AKSI</th>
                     </tr>
                     <tr>
@@ -459,6 +459,7 @@
                                 <input type="text" name="transfers[{{ $i }}][lama_transfer]" class="sheet-input read-only" placeholder="" data-index="{{ $i }}" data-trans-type="lama_transfer" readonly>
                             </td>
                             <td class="photo-upload-cell">
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;">Maks. 6 foto</div>
                                 <div class="photo-selected-list" data-photo-selected></div>
                                 <label class="photo-upload-button">
                                     Pilih foto
@@ -1290,13 +1291,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const index = flowmeterRows.querySelectorAll('tr').length;
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td style="text-align: center;">${index + 1}</td>
+            <td class="row-number" style="text-align: center;">${index + 1}</td>
             <td><input type="text" name="flowmeters[${index}][unit]" class="sheet-input"></td>
             <td><input type="text" name="flowmeters[${index}][jenis_flowmeter]" class="sheet-input"></td>
             <td><input type="text" name="flowmeters[${index}][nomor_seri]" class="sheet-input"></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][awal_pagi]" class="sheet-input" data-index="${index}" data-flow-type="awal_pagi"></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][akhir_sore]" class="sheet-input" data-index="${index}" data-flow-type="akhir_sore"></td>
-            <td><input type="number" step="1" name="flowmeters[${index}][jumlah_pakai]" class="sheet-input read-only" data-index="${index}" data-flow-type="jumlah_pakai" readonly></td>`;
+            <td><input type="number" step="1" name="flowmeters[${index}][jumlah_pakai]" class="sheet-input read-only" data-index="${index}" data-flow-type="jumlah_pakai" readonly></td>
+            <td class="row-action" style="text-align: center;"></td>`;
         flowmeterRows.appendChild(row);
         refreshDynamicRows(flowmeterRows, 'flowmeters');
     });
