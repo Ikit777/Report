@@ -593,6 +593,35 @@
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // ===== Custom Confirmation Dialog - DEFINE FIRST =====
+    window.showConfirmDialog = function(message) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 10000; animation: fadeIn 0.2s;';
+            const dialog = document.createElement('div');
+            dialog.style.cssText = 'background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: slideIn 0.2s;';
+            dialog.innerHTML = `<div style="display: flex; align-items: flex-start; margin-bottom: 16px;"><div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; margin-right: 16px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div><div style="flex: 1;"><h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #111827;">Konfirmasi Hapus</h3><p style="margin: 0; font-size: 14px; color: #6B7280; line-height: 1.5;">${message}</p></div></div><div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;"><button type="button" class="confirm-cancel" style="padding: 10px 20px; border: 1px solid #D1D5DB; background: white; color: #374151; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;">Batal</button><button type="button" class="confirm-delete" style="padding: 10px 20px; border: none; background: #DC2626; color: white; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;">Hapus</button></div>`;
+            if (!document.getElementById('confirm-dialog-style')) {
+                const style = document.createElement('style');
+                style.id = 'confirm-dialog-style';
+                style.textContent = '@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } } .confirm-cancel:hover { background: #F3F4F6 !important; } .confirm-delete:hover { background: #B91C1C !important; }';
+                document.head.appendChild(style);
+            }
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            const cancelBtn = dialog.querySelector('.confirm-cancel');
+            const deleteBtn = dialog.querySelector('.confirm-delete');
+            cancelBtn.focus();
+            const cleanup = () => overlay.remove();
+            cancelBtn.onclick = () => { cleanup(); resolve(false); };
+            deleteBtn.onclick = () => { cleanup(); resolve(true); };
+            overlay.onclick = (e) => { if (e.target === overlay) { cleanup(); resolve(false); } };
+            document.addEventListener('keydown', function escHandler(e) {
+                if (e.key === 'Escape') { cleanup(); resolve(false); document.removeEventListener('keydown', escHandler); }
+            });
+        });
+    };
+
     const reportForm = document.getElementById('reportForm');
     const rowTemplates = new Map();
 
@@ -1656,62 +1685,6 @@ document.addEventListener('DOMContentLoaded', function () {
     
     siteSelect.addEventListener('change', filterTanksBySite);
     filterTanksBySite(); // Initial filter on page load
-    
-    // ===== Custom Confirmation Dialog =====
-    window.showConfirmDialog = function(message) {
-        return new Promise((resolve) => {
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 10000; animation: fadeIn 0.2s;';
-            
-            const dialog = document.createElement('div');
-            dialog.style.cssText = 'background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: slideIn 0.2s;';
-            
-            dialog.innerHTML = `
-                <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
-                    <div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                            <line x1="12" y1="9" x2="12" y2="13"></line>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                        </svg>
-                    </div>
-                    <div style="flex: 1;">
-                        <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #111827;">Konfirmasi Hapus</h3>
-                        <p style="margin: 0; font-size: 14px; color: #6B7280; line-height: 1.5;">${message}</p>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
-                    <button type="button" class="confirm-cancel" style="padding: 10px 20px; border: 1px solid #D1D5DB; background: white; color: #374151; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Batal</button>
-                    <button type="button" class="confirm-delete" style="padding: 10px 20px; border: none; background: #DC2626; color: white; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Hapus</button>
-                </div>
-            `;
-            
-            if (!document.getElementById('confirm-dialog-style')) {
-                const style = document.createElement('style');
-                style.id = 'confirm-dialog-style';
-                style.textContent = '@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideIn { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } } .confirm-cancel:hover { background: #F3F4F6 !important; } .confirm-delete:hover { background: #B91C1C !important; }';
-                document.head.appendChild(style);
-            }
-            
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
-            
-            const cancelBtn = dialog.querySelector('.confirm-cancel');
-            const deleteBtn = dialog.querySelector('.confirm-delete');
-            
-            cancelBtn.focus();
-            
-            const cleanup = () => overlay.remove();
-            
-            cancelBtn.onclick = () => { cleanup(); resolve(false); };
-            deleteBtn.onclick = () => { cleanup(); resolve(true); };
-            overlay.onclick = (e) => { if (e.target === overlay) { cleanup(); resolve(false); } };
-            
-            document.addEventListener('keydown', function escHandler(e) {
-                if (e.key === 'Escape') { cleanup(); resolve(false); document.removeEventListener('keydown', escHandler); }
-            });
-        });
-    };
 });
 </script>
 @endsection
