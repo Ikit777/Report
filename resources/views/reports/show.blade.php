@@ -543,9 +543,12 @@
         </div>
     </div>
 
-    <h3 style="margin-top: 1rem; margin-bottom: 0; font-size: 1rem; color: var(--text-primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.125rem;">
+    <!-- A. LAPORAN HARIAN (MAIN TANK) - Outside Card -->
+    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         A. LAPORAN HARIAN (MAIN TANK)
     </h3>
+
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
         <div class="table-responsive">
             <table class="sheet-table" style="border-collapse: collapse; width: 100%;">
                 <thead>
@@ -578,8 +581,17 @@
                         $totFmSore = 0;
                         $totFmPakai = 0;
                         $summaryTanks = [];
+                        $tankCounter = 1;
                     @endphp
                     @foreach($groupedItems as $tankCode => $items)
+                        <!-- Tank Heading -->
+                        <tr style="background-color: #f8fafc;">
+                            <td colspan="15" style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.95rem; color: #1e293b;">
+                                {{ $tankCounter }}. Tangki {{ $tankCode }} — {{ strtoupper($items->first()->tank->main_hole) }}
+                            </td>
+                        </tr>
+                        @php $tankCounter++; @endphp
+                        
                         @foreach($items as $subIndex => $item)
                             @php
                                 $isAvgRow = ($item->tank->code === 'SPM3' && $item->tank->main_hole === '(D+B)/2');
@@ -791,11 +803,13 @@
         </div>
         @endif
 
-    <!-- SECTION B. TRANSFER SOLAR -->
-    <h3 style="margin-top: 1rem; margin-bottom: 0; font-size: 1rem; color: var(--text-primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.125rem;">
+    <!-- B. TRANSFER SOLAR - Outside Card -->
+    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; color: var(--text-primary);">
         B. TRANSFER SOLAR
     </h3>
-    <div class="table-responsive">
+
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+        <div class="table-responsive">
         <table class="sheet-table" style="border-collapse: collapse; width: 100%;">
             <thead>
                 <tr>
@@ -883,13 +897,9 @@
             </tbody>
         </table>
     </div>
+    </div>
 
-    <!-- SECTION C. PEMAKAIAN FLOWMETER -->
-    <h3 style="margin-top: 1rem; margin-bottom: 0; font-size: 1rem; color: var(--text-primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.125rem;">
-        C. PEMAKAIAN FLOWMETER
-    </h3>
-    <div class="table-responsive">
-        <table class="sheet-table" style="border-collapse: collapse; width: 100%;">
+    @if(false)
             <thead>
                 <tr>
                     <th style="width: 40px;">NO</th>
@@ -924,6 +934,7 @@
                 @endif
             </tbody>
         </table>
+    </div>
     </div>
 
     @if(false)

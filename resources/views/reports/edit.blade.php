@@ -560,10 +560,10 @@
                                 <input type="text" name="flowmeters[{{ $i }}][nomor_seri]" class="sheet-input" value="{{ old("flowmeters.{$i}.nomor_seri", $fData ? $fData->nomor_seri : '') }}">
                             </td>
                             <td>
-                                <input type="number" step="0.01" name="flowmeters[{{ $i }}][awal_pagi]" class="sheet-input" data-index="{{ $i }}" data-flow-type="awal_pagi" value="{{ old("flowmeters.{$i}.awal_pagi", $fData ? $fData->awal_pagi : '') }}">
+                                <input type="text" inputmode="decimal" name="flowmeters[{{ $i }}][awal_pagi]" class="sheet-input" data-index="{{ $i }}" data-flow-type="awal_pagi" value="{{ old("flowmeters.{$i}.awal_pagi", $fData ? $fData->awal_pagi : '') }}">
                             </td>
                             <td>
-                                <input type="number" step="0.01" name="flowmeters[{{ $i }}][akhir_sore]" class="sheet-input" data-index="{{ $i }}" data-flow-type="akhir_sore" value="{{ old("flowmeters.{$i}.akhir_sore", $fData ? $fData->akhir_sore : '') }}">
+                                <input type="text" inputmode="decimal" name="flowmeters[{{ $i }}][akhir_sore]" class="sheet-input" data-index="{{ $i }}" data-flow-type="akhir_sore" value="{{ old("flowmeters.{$i}.akhir_sore", $fData ? $fData->akhir_sore : '') }}">
                             </td>
                             <td>
                                 <input type="number" step="1" name="flowmeters[{{ $i }}][jumlah_pakai]" class="sheet-input read-only" data-index="{{ $i }}" data-flow-type="jumlah_pakai" readonly value="{{ old("flowmeters.{$i}.jumlah_pakai", $fData ? $fData->jumlah_pakai : '') }}">
@@ -1122,8 +1122,8 @@ document.addEventListener('DOMContentLoaded', function () {
             <td><input type="text" name="flowmeters[${index}][unit]" class="sheet-input"></td>
             <td><input type="text" name="flowmeters[${index}][jenis_flowmeter]" class="sheet-input"></td>
             <td><input type="text" name="flowmeters[${index}][nomor_seri]" class="sheet-input"></td>
-            <td><input type="number" step="0.01" name="flowmeters[${index}][awal_pagi]" class="sheet-input" data-index="${index}" data-flow-type="awal_pagi"></td>
-            <td><input type="number" step="0.01" name="flowmeters[${index}][akhir_sore]" class="sheet-input" data-index="${index}" data-flow-type="akhir_sore"></td>
+            <td><input type="text" inputmode="decimal" name="flowmeters[${index}][awal_pagi]" class="sheet-input" data-index="${index}" data-flow-type="awal_pagi"></td>
+            <td><input type="text" inputmode="decimal" name="flowmeters[${index}][akhir_sore]" class="sheet-input" data-index="${index}" data-flow-type="akhir_sore"></td>
             <td><input type="number" step="1" name="flowmeters[${index}][jumlah_pakai]" class="sheet-input read-only" data-index="${index}" data-flow-type="jumlah_pakai" readonly></td>`;
         flowmeterRows.appendChild(row);
         refreshDynamicRows(flowmeterRows, 'flowmeters');

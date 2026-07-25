@@ -37,8 +37,8 @@
             <td><input type="text" name="items[{{ $i }}][liter_sore]" class="sheet-input read-only" data-item-type="liter_sore" value="{{ old("items.{$i}.liter_sore", $savedItem && $savedItem->sounding_sore !== null && Auth::user()->isFuelman() ? 'XXXX' : ($savedItem?->liter_sore ?? '')) }}" readonly></td>
             <td><input type="time" name="items[{{ $i }}][jam_sore]" class="sheet-input" value="{{ old("items.{$i}.jam_sore", $savedItem?->jam_sore ? \Carbon\Carbon::parse($savedItem->jam_sore)->format('H:i') : '') }}"></td>
             <td><input type="text" name="items[{{ $i }}][petugas_sore]" class="sheet-input" value="{{ old("items.{$i}.petugas_sore", $savedItem?->petugas_sore) }}"></td>
-            <td><input type="number" name="items[{{ $i }}][fm_pagi]" class="sheet-input" data-item-type="fm_pagi" value="{{ old("items.{$i}.fm_pagi", $savedItem?->fm_pagi) }}"></td>
-            <td><input type="number" name="items[{{ $i }}][fm_sore]" class="sheet-input" data-item-type="fm_sore" value="{{ old("items.{$i}.fm_sore", $savedItem?->fm_sore) }}"></td>
+            <td><input type="text" inputmode="decimal" name="items[{{ $i }}][fm_pagi]" class="sheet-input" data-item-type="fm_pagi" value="{{ old("items.{$i}.fm_pagi", $savedItem?->fm_pagi) }}"></td>
+            <td><input type="text" inputmode="decimal" name="items[{{ $i }}][fm_sore]" class="sheet-input" data-item-type="fm_sore" value="{{ old("items.{$i}.fm_sore", $savedItem?->fm_sore) }}"></td>
             <td><input type="number" name="items[{{ $i }}][fm_pakai]" class="sheet-input read-only" data-item-type="fm_pakai" value="{{ old("items.{$i}.fm_pakai", $savedItem && $savedItem->fm_pakai !== null && $savedItem->fm_pakai != 0 ? $savedItem->fm_pakai : '') }}" readonly></td>
             <td><input type="text" name="items[{{ $i }}][keterangan]" class="sheet-input" value="{{ old("items.{$i}.keterangan", $savedItem?->keterangan) }}"></td>
             <td class="photo-upload-cell">
