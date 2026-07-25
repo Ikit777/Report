@@ -496,7 +496,6 @@
                     @for($i = 0; $i < max(1, count(old('flowmeters', []))); $i++)
                         <tr>
                             <td class="row-number" style="text-align: center;">{{ $i + 1 }}</td>
-                            <td class="row-action" style="text-align: center;"></td>
                             <td>
                                 <input type="text" name="flowmeters[{{ $i }}][unit]" class="sheet-input" value="{{ old("flowmeters.{$i}.unit") }}">
                             </td>
@@ -515,6 +514,7 @@
                             <td>
                                 <input type="number" step="1" name="flowmeters[{{ $i }}][jumlah_pakai]" class="sheet-input read-only" data-index="{{ $i }}" data-flow-type="jumlah_pakai" readonly>
                             </td>
+                            <td class="row-action" style="text-align: center;"></td>
                         </tr>
                     @endfor
                 </tbody>
