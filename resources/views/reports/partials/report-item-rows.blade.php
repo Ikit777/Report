@@ -2,6 +2,16 @@
     $savedItems = isset($report) ? $report->items->values() : collect();
     $oldItems = old('items', []);
     $itemRowCount = max(1, $savedItems->count(), count($oldItems));
+    
+    // Group saved items by tank_id to detect 3-row groups for DEPAN+BELAKANG tanks
+    $itemsByTankId = [];
+    foreach ($savedItems as $idx => $item) {
+        $tid = $item->tank_id;
+        if (!isset($itemsByTankId[$tid])) {
+            $itemsByTankId[$tid] = [];
+        }
+        $itemsByTankId[$tid][] = ['item' => $item, 'index' => $idx];
+    }
 @endphp
 <tbody id="reportItemRows">
     @for($i = 0; $i < $itemRowCount; $i++)
@@ -13,19 +23,25 @@
             // Determine main_hole display based on main_hole_variant column
             $mainHoleDisplay = $selectedTank?->main_hole ?? '-';
             if ($savedItem && $savedItem->main_hole_variant) {
+                // New data: use main_hole_variant from database
                 $mainHoleDisplay = $savedItem->main_hole_variant;
             } elseif ($savedItem && $selectedTank && $selectedTank->main_hole === '(DEPAN + BELAKANG) / 2') {
-                // Fallback for old data: detect variant based on position in group
-                $sameTankItems = $savedItems->where('tank_id', $selectedTankId);
-                if ($sameTankItems->count() === 3) {
-                    $position = $sameTankItems->search(function($item) use ($savedItem) {
-                        return $item->id === $savedItem->id;
-                    });
-                    if ($position === 0) {
+                // Fallback for old data: detect variant based on position in 3-row group
+                if (isset($itemsByTankId[$selectedTankId]) && count($itemsByTankId[$selectedTankId]) === 3) {
+                    // Find position of current item in the group
+                    $positionInGroup = null;
+                    foreach ($itemsByTankId[$selectedTankId] as $pos => $groupItem) {
+                        if ($groupItem['index'] === $i) {
+                            $positionInGroup = $pos;
+                            break;
+                        }
+                    }
+                    
+                    if ($positionInGroup === 0) {
                         $mainHoleDisplay = 'DEPAN';
-                    } elseif ($position === 1) {
+                    } elseif ($positionInGroup === 1) {
                         $mainHoleDisplay = 'BELAKANG';
-                    } elseif ($position === 2) {
+                    } elseif ($positionInGroup === 2) {
                         $mainHoleDisplay = '(DEPAN + BELAKANG) / 2';
                     }
                 }
