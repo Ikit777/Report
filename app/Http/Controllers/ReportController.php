@@ -593,8 +593,7 @@ class ReportController extends Controller
         
         // Row 1: DEPAN (use input data as-is)
         $depanItem = $this->createItemFromData($tank, $data);
-        // Store variant info in a way that can be retrieved later
-        $depanItem->setAttribute('_main_hole_display', 'DEPAN');
+        $depanItem->main_hole_variant = 'DEPAN';
         $report->items()->save($depanItem);
         \Log::info("Saved DEPAN row", ['item_id' => $depanItem->id]);
         
@@ -615,7 +614,7 @@ class ReportController extends Controller
             'photos' => [],
         ];
         $belakangItem = $this->createItemFromData($tank, $belakangData);
-        $belakangItem->setAttribute('_main_hole_display', 'BELAKANG');
+        $belakangItem->main_hole_variant = 'BELAKANG';
         $report->items()->save($belakangItem);
         \Log::info("Saved BELAKANG row", ['item_id' => $belakangItem->id]);
         
@@ -636,7 +635,7 @@ class ReportController extends Controller
             'photos' => [],
         ];
         $avgItem = $this->createItemFromData($tank, $avgData);
-        $avgItem->setAttribute('_main_hole_display', '(DEPAN + BELAKANG) / 2');
+        $avgItem->main_hole_variant = '(DEPAN + BELAKANG) / 2';
         $report->items()->save($avgItem);
         \Log::info("Saved (DEPAN + BELAKANG) / 2 row", ['item_id' => $avgItem->id]);
         
