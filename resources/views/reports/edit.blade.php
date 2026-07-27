@@ -1153,6 +1153,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 nextNextRow.querySelector('.tank-code-cell')?.remove();
                 nextNextRow.querySelector('.row-action')?.remove();
                 
+                // Set liter fields based on sounding for all 3 rows (if Fuelman role)
+                // If sounding empty → liter empty, if sounding has value → liter XXXX
+                if (isFuelman) {
+                    // DEPAN row
+                    const depanPagiSounding = row.querySelector('[data-item-type="sounding_pagi"]');
+                    const depanSoreSounding = row.querySelector('[data-item-type="sounding_sore"]');
+                    const depanPagiLiter = row.querySelector('[data-item-type="liter_pagi"]');
+                    const depanSoreLiter = row.querySelector('[data-item-type="liter_sore"]');
+                    
+                    if (depanPagiSounding && depanPagiLiter) {
+                        depanPagiLiter.value = depanPagiSounding.value ? 'XXXX' : '';
+                    }
+                    if (depanSoreSounding && depanSoreLiter) {
+                        depanSoreLiter.value = depanSoreSounding.value ? 'XXXX' : '';
+                    }
+                    
+                    // BELAKANG row
+                    const belakangPagiSounding = nextRow.querySelector('[data-item-type="sounding_pagi"]');
+                    const belakangSoreSounding = nextRow.querySelector('[data-item-type="sounding_sore"]');
+                    const belakangPagiLiter = nextRow.querySelector('[data-item-type="liter_pagi"]');
+                    const belakangSoreLiter = nextRow.querySelector('[data-item-type="liter_sore"]');
+                    
+                    if (belakangPagiSounding && belakangPagiLiter) {
+                        belakangPagiLiter.value = belakangPagiSounding.value ? 'XXXX' : '';
+                    }
+                    if (belakangSoreSounding && belakangSoreLiter) {
+                        belakangSoreLiter.value = belakangSoreSounding.value ? 'XXXX' : '';
+                    }
+                    
+                    // Average row - will be set by setupAvgCalculation
+                }
+                
+                // Make average row sounding inputs readonly
+                const avgPagiInput = nextNextRow.querySelector('[data-item-type="sounding_pagi"]');
+                const avgSoreInput = nextNextRow.querySelector('[data-item-type="sounding_sore"]');
+                if (avgPagiInput) {
+                    avgPagiInput.classList.add('read-only');
+                    avgPagiInput.setAttribute('readonly', 'readonly');
+                }
+                if (avgSoreInput) {
+                    avgSoreInput.classList.add('read-only');
+                    avgSoreInput.setAttribute('readonly', 'readonly');
+                }
+                
                 // Setup auto-calculation
                 setupAvgCalculation(row, nextRow, nextNextRow, tankId);
                 
@@ -1256,9 +1300,19 @@ document.addEventListener('DOMContentLoaded', function () {
         belakangRow.querySelector('[data-photo-selected]')?.replaceChildren();
         belakangRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         
-        // Set liter fields to XXXX for BELAKANG
-        belakangRow.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
-        belakangRow.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
+        // Set liter fields based on sounding for BELAKANG
+        // If sounding empty → liter empty, if sounding has value → liter XXXX (for Fuelman)
+        const belakangPagiSounding = belakangRow.querySelector('[data-item-type="sounding_pagi"]');
+        const belakangSoreSounding = belakangRow.querySelector('[data-item-type="sounding_sore"]');
+        const belakangPagiLiter = belakangRow.querySelector('[data-item-type="liter_pagi"]');
+        const belakangSoreLiter = belakangRow.querySelector('[data-item-type="liter_sore"]');
+        
+        if (belakangPagiSounding && belakangPagiLiter) {
+            belakangPagiLiter.value = belakangPagiSounding.value ? 'XXXX' : '';
+        }
+        if (belakangSoreSounding && belakangSoreLiter) {
+            belakangSoreLiter.value = belakangSoreSounding.value ? 'XXXX' : '';
+        }
         
         // Create (DEPAN + BELAKANG) / 2 row
         const avgIndex = belakangIndex + 1;
@@ -1304,9 +1358,19 @@ document.addEventListener('DOMContentLoaded', function () {
         row.after(belakangRow);
         belakangRow.after(avgRow);
         
-        // Set liter fields to XXXX for DEPAN (current row)
-        row.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
-        row.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
+        // Set liter fields based on sounding for DEPAN (current row)
+        // If sounding empty → liter empty, if sounding has value → liter XXXX
+        const depanPagiSounding = row.querySelector('[data-item-type="sounding_pagi"]');
+        const depanSoreSounding = row.querySelector('[data-item-type="sounding_sore"]');
+        const depanPagiLiter = row.querySelector('[data-item-type="liter_pagi"]');
+        const depanSoreLiter = row.querySelector('[data-item-type="liter_sore"]');
+        
+        if (depanPagiSounding && depanPagiLiter) {
+            depanPagiLiter.value = depanPagiSounding.value ? 'XXXX' : '';
+        }
+        if (depanSoreSounding && depanSoreLiter) {
+            depanSoreLiter.value = depanSoreSounding.value ? 'XXXX' : '';
+        }
         
         // Update photo limit description for all 3 rows to "Maks. 4 foto"
         [row, belakangRow, avgRow].forEach(r => {
@@ -1762,7 +1826,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('reportForm').addEventListener('submit', event => {
         // Debug: Log all tank_id inputs before submit
-        console.log('=== FORM SUBMIT DEBUG ===');
+        console.log('=== EDIT FORM SUBMIT DEBUG ===');
         const tankIdInputs = document.querySelectorAll('input[name*="[tank_id]"]');
         tankIdInputs.forEach((input, idx) => {
             const row = input.closest('tr');
@@ -1772,7 +1836,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 value: input.value,
                 mainHole: mainHole,
                 parentCell: input.parentElement?.className,
-                exists: !!input.value
+                exists: !!input.value,
+                inForm: input.form !== null
             });
         });
         

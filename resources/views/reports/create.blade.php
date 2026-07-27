@@ -1023,9 +1023,19 @@ document.addEventListener('DOMContentLoaded', function () {
         belakangRow.querySelector('[data-photo-selected]')?.replaceChildren();
         belakangRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         
-        // Set liter fields to XXXX for BELAKANG
-        belakangRow.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
-        belakangRow.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
+        // Set liter fields based on sounding for BELAKANG
+        // If sounding empty → liter empty, if sounding has value → liter XXXX (for Fuelman)
+        const belakangPagiSounding = belakangRow.querySelector('[data-item-type="sounding_pagi"]');
+        const belakangSoreSounding = belakangRow.querySelector('[data-item-type="sounding_sore"]');
+        const belakangPagiLiter = belakangRow.querySelector('[data-item-type="liter_pagi"]');
+        const belakangSoreLiter = belakangRow.querySelector('[data-item-type="liter_sore"]');
+        
+        if (belakangPagiSounding && belakangPagiLiter) {
+            belakangPagiLiter.value = belakangPagiSounding.value ? 'XXXX' : '';
+        }
+        if (belakangSoreSounding && belakangSoreLiter) {
+            belakangSoreLiter.value = belakangSoreSounding.value ? 'XXXX' : '';
+        }
         
         // Create (DEPAN + BELAKANG) / 2 row
         const avgIndex = belakangIndex + 1;
@@ -1084,9 +1094,19 @@ document.addEventListener('DOMContentLoaded', function () {
         row.after(belakangRow);
         belakangRow.after(avgRow);
         
-        // Set liter fields to XXXX for DEPAN (current row)
-        row.querySelector('[data-item-type="liter_pagi"]').value = 'XXXX';
-        row.querySelector('[data-item-type="liter_sore"]').value = 'XXXX';
+        // Set liter fields based on sounding for DEPAN (current row)
+        // If sounding empty → liter empty, if sounding has value → liter XXXX
+        const depanPagiSounding = row.querySelector('[data-item-type="sounding_pagi"]');
+        const depanSoreSounding = row.querySelector('[data-item-type="sounding_sore"]');
+        const depanPagiLiter = row.querySelector('[data-item-type="liter_pagi"]');
+        const depanSoreLiter = row.querySelector('[data-item-type="liter_sore"]');
+        
+        if (depanPagiSounding && depanPagiLiter) {
+            depanPagiLiter.value = depanPagiSounding.value ? 'XXXX' : '';
+        }
+        if (depanSoreSounding && depanSoreLiter) {
+            depanSoreLiter.value = depanSoreSounding.value ? 'XXXX' : '';
+        }
         
         // Update photo limit description for all 3 rows to "Maks. 4 foto"
         [row, belakangRow, avgRow].forEach(r => {
