@@ -584,7 +584,17 @@ class ReportController extends Controller
             // Check if this tank has main_hole "(DEPAN + BELAKANG) / 2"
             // AND has exactly 3 rows submitted (meaning it's a 3-row group from form)
             if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2' && count($items) === 3) {
-                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type with 3 rows from form");
+                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type with 3 rows from form", [
+                    'item_0_sounding_pagi' => $items[0]['data']['sounding_pagi'] ?? 'null',
+                    'item_0_sounding_sore' => $items[0]['data']['sounding_sore'] ?? 'null',
+                    'item_1_sounding_pagi' => $items[1]['data']['sounding_pagi'] ?? 'null',
+                    'item_1_sounding_sore' => $items[1]['data']['sounding_sore'] ?? 'null',
+                    'item_2_sounding_pagi' => $items[2]['data']['sounding_pagi'] ?? 'null',
+                    'item_2_sounding_sore' => $items[2]['data']['sounding_sore'] ?? 'null',
+                    'full_data_0' => $items[0]['data'],
+                    'full_data_1' => $items[1]['data'],
+                    'full_data_2' => $items[2]['data'],
+                ]);
                 
                 // Set main_hole_variant for each row (DON'T modify keterangan)
                 $items[0]['data']['main_hole_variant'] = 'DEPAN';
