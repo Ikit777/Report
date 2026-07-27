@@ -84,7 +84,13 @@
                     @endforeach
                 </select>
             </td>
-            <td class="item-main-hole" style="text-align: center;">{{ $mainHoleDisplay }}</td>
+            <td class="item-main-hole" style="text-align: center;">
+                @if($savedItem && $savedItem->main_hole_variant)
+                    {{ $savedItem->main_hole_variant }}
+                @else
+                    {{ $mainHoleDisplay }}
+                @endif
+            </td>
             <td><input type="number" step="0.01" name="items[{{ $i }}][sounding_pagi]" class="sheet-input" data-item-type="sounding_pagi" value="{{ old("items.{$i}.sounding_pagi", $savedItem?->sounding_pagi) }}"></td>
             <td><input type="text" name="items[{{ $i }}][liter_pagi]" class="sheet-input read-only" data-item-type="liter_pagi" value="{{ old("items.{$i}.liter_pagi", $savedItem && $savedItem->sounding_pagi !== null && Auth::user()->isFuelman() ? 'XXXX' : ($savedItem?->liter_pagi ?? '')) }}" readonly></td>
             <td><input type="time" name="items[{{ $i }}][jam_pagi]" class="sheet-input" value="{{ old("items.{$i}.jam_pagi", $savedItem?->jam_pagi ? \Carbon\Carbon::parse($savedItem->jam_pagi)->format('H:i') : '') }}"></td>
