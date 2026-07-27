@@ -12,14 +12,26 @@
             
             // Determine main_hole display based on keterangan marker
             $mainHoleDisplay = $selectedTank?->main_hole ?? '-';
+            $debugInfo = "Tank: {$selectedTank?->code}, Original MH: {$mainHoleDisplay}, Keterangan: " . ($savedItem?->keterangan ?? 'null');
+            
             if ($savedItem && $savedItem->keterangan) {
                 if (str_starts_with($savedItem->keterangan, '[DEPAN]')) {
                     $mainHoleDisplay = 'DEPAN';
+                    $debugInfo .= " → Changed to DEPAN";
                 } elseif (str_starts_with($savedItem->keterangan, '[BELAKANG]')) {
                     $mainHoleDisplay = 'BELAKANG';
+                    $debugInfo .= " → Changed to BELAKANG";
                 } elseif (str_starts_with($savedItem->keterangan, '[(DEPAN + BELAKANG) / 2]')) {
                     $mainHoleDisplay = '(DEPAN + BELAKANG) / 2';
+                    $debugInfo .= " → Changed to (DEPAN + BELAKANG) / 2";
+                } else {
+                    $debugInfo .= " → NO MATCH";
                 }
+            }
+            
+            // Temporary debug: log to Laravel log
+            if ($savedItem && $selectedTank && str_contains($selectedTank->main_hole ?? '', 'DEPAN')) {
+                \Log::info("DEBUG ROW #{$i}: " . $debugInfo);
             }
             
             // Remove marker from keterangan for display
