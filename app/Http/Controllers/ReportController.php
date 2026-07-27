@@ -586,10 +586,10 @@ class ReportController extends Controller
             if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2' && count($items) === 3) {
                 \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type with 3 rows from form");
                 
-                // Add markers to keterangan for each row
-                $items[0]['data']['keterangan'] = '[DEPAN]' . ($items[0]['data']['keterangan'] ? ' ' . $items[0]['data']['keterangan'] : '');
-                $items[1]['data']['keterangan'] = '[BELAKANG]' . ($items[1]['data']['keterangan'] ? ' ' . $items[1]['data']['keterangan'] : '');
-                $items[2]['data']['keterangan'] = '[(DEPAN + BELAKANG) / 2]' . ($items[2]['data']['keterangan'] ? ' ' . $items[2]['data']['keterangan'] : '');
+                // Set main_hole_variant for each row (DON'T modify keterangan)
+                $items[0]['data']['main_hole_variant'] = 'DEPAN';
+                $items[1]['data']['main_hole_variant'] = 'BELAKANG';
+                $items[2]['data']['main_hole_variant'] = '(DEPAN + BELAKANG) / 2';
                 
                 // Save each row
                 foreach ($items as $item) {
@@ -616,16 +616,16 @@ class ReportController extends Controller
     {
         \Log::info("Creating 3 rows for DEPAN+BELAKANG tank", ['tank_code' => $tank->code]);
         
-        // Row 1: DEPAN (use input data as-is, prepend keterangan with variant marker)
-        $depanKeterangan = '[DEPAN]' . ($data['keterangan'] ? ' ' . $data['keterangan'] : '');
-        $depanData = array_merge($data, ['keterangan' => $depanKeterangan]);
+        // Row 1: DEPAN (use input data as-is)
+        $depanData = array_merge($data, ['main_hole_variant' => 'DEPAN']);
         $depanItem = $this->createItemFromData($tank, $depanData);
         $report->items()->save($depanItem);
-        \Log::info("Saved DEPAN row", ['item_id' => $depanItem->id, 'keterangan' => $depanKeterangan]);
+        \Log::info("Saved DEPAN row", ['item_id' => $depanItem->id]);
         
         // Row 2: BELAKANG (keep petugas, clear other fields)
         $belakangData = [
             'tank_id' => $tank->id,
+            'main_hole_variant' => 'BELAKANG',
             'sounding_pagi' => null,
             'liter_pagi' => null,
             'jam_pagi' => null,
@@ -636,7 +636,7 @@ class ReportController extends Controller
             'petugas_sore' => $data['petugas_sore'] ?? null,
             'fm_pagi' => null,
             'fm_sore' => null,
-            'keterangan' => '[BELAKANG]',
+            'keterangan' => null,
             'photos' => [],
         ];
         $belakangItem = $this->createItemFromData($tank, $belakangData);
@@ -646,6 +646,7 @@ class ReportController extends Controller
         // Row 3: (DEPAN + BELAKANG) / 2 (keep petugas, clear other fields)
         $avgData = [
             'tank_id' => $tank->id,
+            'main_hole_variant' => '(DEPAN + BELAKANG) / 2',
             'sounding_pagi' => null,
             'liter_pagi' => null,
             'jam_pagi' => null,
@@ -656,7 +657,7 @@ class ReportController extends Controller
             'petugas_sore' => $data['petugas_sore'] ?? null,
             'fm_pagi' => null,
             'fm_sore' => null,
-            'keterangan' => '[(DEPAN + BELAKANG) / 2]',
+            'keterangan' => null,
             'photos' => [],
         ];
         $avgItem = $this->createItemFromData($tank, $avgData);
@@ -716,6 +717,7 @@ class ReportController extends Controller
 
         return new DailyReportItem([
             'tank_id' => $tank?->id,
+            'main_hole_variant' => $data['main_hole_variant'] ?? null,
             'sounding_pagi' => $soundingPagi,
             'liter_pagi' => $literPagi,
             'jam_pagi' => $data['jam_pagi'] ?: null,

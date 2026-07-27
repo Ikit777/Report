@@ -10,34 +10,10 @@
             $selectedTankId = old("items.{$i}.tank_id", $savedItem?->tank_id);
             $selectedTank = $tanks->firstWhere('id', $selectedTankId);
             
-            // Determine main_hole display based on keterangan marker
+            // Determine main_hole display based on main_hole_variant column
             $mainHoleDisplay = $selectedTank?->main_hole ?? '-';
-            $debugInfo = "Tank: {$selectedTank?->code}, Original MH: {$mainHoleDisplay}, Keterangan: " . ($savedItem?->keterangan ?? 'null');
-            
-            if ($savedItem && $savedItem->keterangan) {
-                if (str_starts_with($savedItem->keterangan, '[DEPAN]')) {
-                    $mainHoleDisplay = 'DEPAN';
-                    $debugInfo .= " → Changed to DEPAN";
-                } elseif (str_starts_with($savedItem->keterangan, '[BELAKANG]')) {
-                    $mainHoleDisplay = 'BELAKANG';
-                    $debugInfo .= " → Changed to BELAKANG";
-                } elseif (str_starts_with($savedItem->keterangan, '[(DEPAN + BELAKANG) / 2]')) {
-                    $mainHoleDisplay = '(DEPAN + BELAKANG) / 2';
-                    $debugInfo .= " → Changed to (DEPAN + BELAKANG) / 2";
-                } else {
-                    $debugInfo .= " → NO MATCH";
-                }
-            }
-            
-            // Temporary debug: log to Laravel log
-            if ($savedItem && $selectedTank && str_contains($selectedTank->main_hole ?? '', 'DEPAN')) {
-                \Log::info("DEBUG ROW #{$i}: " . $debugInfo);
-            }
-            
-            // Remove marker from keterangan for display
-            $keteranganDisplay = $savedItem?->keterangan;
-            if ($keteranganDisplay && preg_match('/^\[(DEPAN|BELAKANG|\(DEPAN \+ BELAKANG\) \/ 2)\]\s*(.*)$/', $keteranganDisplay, $matches)) {
-                $keteranganDisplay = $matches[2];
+            if ($savedItem && $savedItem->main_hole_variant) {
+                $mainHoleDisplay = $savedItem->main_hole_variant;
             }
         @endphp
         <tr>
@@ -45,6 +21,7 @@
             <td class="tank-code-cell">
                 @if($savedItem)
                     <input type="hidden" name="items[{{ $i }}][attachment_key]" value="item-{{ $savedItem->tank_id }}">
+                    <input type="hidden" name="items[{{ $i }}][main_hole_variant]" value="{{ $savedItem->main_hole_variant }}">
                 @endif
                 <select name="items[{{ $i }}][tank_id]" class="sheet-input tank-select" data-item-type="tank_id">
                     <option value="">Pilih tangki</option>
@@ -70,7 +47,7 @@
             <td><input type="text" inputmode="decimal" name="items[{{ $i }}][fm_pagi]" class="sheet-input" data-item-type="fm_pagi" value="{{ old("items.{$i}.fm_pagi", $savedItem?->fm_pagi) }}"></td>
             <td><input type="text" inputmode="decimal" name="items[{{ $i }}][fm_sore]" class="sheet-input" data-item-type="fm_sore" value="{{ old("items.{$i}.fm_sore", $savedItem?->fm_sore) }}"></td>
             <td><input type="number" name="items[{{ $i }}][fm_pakai]" class="sheet-input read-only" data-item-type="fm_pakai" value="{{ old("items.{$i}.fm_pakai", $savedItem && $savedItem->fm_pakai !== null && $savedItem->fm_pakai != 0 ? $savedItem->fm_pakai : '') }}" readonly></td>
-            <td><input type="text" name="items[{{ $i }}][keterangan]" class="sheet-input" value="{{ old("items.{$i}.keterangan", $keteranganDisplay) }}"></td>
+            <td><input type="text" name="items[{{ $i }}][keterangan]" class="sheet-input" value="{{ old("items.{$i}.keterangan", $savedItem?->keterangan) }}"></td>
             <td class="photo-upload-cell">
                 @php
                     $existingAttachments = $savedItem && isset($report)
