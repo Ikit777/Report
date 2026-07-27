@@ -984,27 +984,16 @@ document.addEventListener('DOMContentLoaded', function () {
         
         console.log('Creating BELAKANG row', { belakangIndex, tankId: select.value });
         
-        // Update name attributes FIRST (before removing cells)
-        belakangRow.querySelectorAll('input, select').forEach(field => {
-            field.name = field.name.replace(/items\[\d+\]/, `items[${belakangIndex}]`);
-            // DON'T clear sounding values - user needs to fill them manually
-            // Only clear NON-user-input fields: liter (calculated), photos, attachment_key
-            if (field.name.includes('[attachment_key]') || 
-                field.matches('[data-item-type="liter_pagi"], [data-item-type="liter_sore"], [data-item-type="fm_pakai"]')) {
-                field.value = '';
-            }
-        });
-        
         // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
         belakangRow.querySelector('.row-number')?.remove();
-        belakangRow.querySelector('.tank-code-cell')?.remove(); // This removes the old cloned hidden input
+        belakangRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
         belakangRow.querySelector('.row-action')?.remove();
         
         // Set main hole text FIRST (before adding hidden input)
         const belakangMainHoleCell = belakangRow.querySelector('.item-main-hole');
         belakangMainHoleCell.textContent = 'BELAKANG';
         
-        // NOW create and append NEW hidden input AFTER everything else
+        // NOW create and append hidden input AFTER setting textContent
         const belakangHiddenInput = document.createElement('input');
         belakangHiddenInput.type = 'hidden';
         belakangHiddenInput.name = `items[${belakangIndex}][tank_id]`;
@@ -1019,6 +1008,17 @@ document.addEventListener('DOMContentLoaded', function () {
             value: belakangHiddenInput.value,
             parentCell: belakangMainHoleCell.className,
             stillInDom: document.contains(belakangHiddenInput)
+        });
+        
+        // Update name attributes for BELAKANG row
+        belakangRow.querySelectorAll('input, select').forEach(field => {
+            field.name = field.name.replace(/items\[\d+\]/, `items[${belakangIndex}]`);
+            // DON'T clear sounding values - user needs to fill them manually
+            // Only clear NON-user-input fields: liter (calculated), photos, attachment_key
+            if (field.name.includes('[attachment_key]') || 
+                field.matches('[data-item-type="liter_pagi"], [data-item-type="liter_sore"], [data-item-type="fm_pakai"]')) {
+                field.value = '';
+            }
         });
         belakangRow.querySelector('[data-photo-selected]')?.replaceChildren();
         belakangRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
@@ -1043,35 +1043,16 @@ document.addEventListener('DOMContentLoaded', function () {
         
         console.log('Creating average row', { avgIndex, tankId: select.value });
         
-        // Update name attributes FIRST (before removing cells)
-        avgRow.querySelectorAll('input, select').forEach(field => {
-            field.name = field.name.replace(/items\[\d+\]/, `items[${avgIndex}]`);
-            // DON'T clear sounding values - they will be auto-calculated
-            // Only clear user-input fields that shouldn't be copied from DEPAN row
-            if (field.name.includes('[attachment_key]') || 
-                field.name.includes('[jam_pagi]') || field.name.includes('[jam_sore]') ||
-                field.name.includes('[fm_pagi]') || field.name.includes('[fm_sore]') ||
-                field.name.includes('[keterangan]') ||
-                field.matches('[data-item-type="liter_pagi"], [data-item-type="liter_sore"], [data-item-type="fm_pakai"]')) {
-                field.value = '';
-            }
-            // Make sounding inputs readonly for average row
-            if (field.matches('[data-item-type="sounding_pagi"], [data-item-type="sounding_sore"]')) {
-                field.classList.add('read-only');
-                field.setAttribute('readonly', 'readonly');
-            }
-        });
-        
         // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
         avgRow.querySelector('.row-number')?.remove();
-        avgRow.querySelector('.tank-code-cell')?.remove(); // This removes the old cloned hidden input
+        avgRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
         avgRow.querySelector('.row-action')?.remove();
         
         // Set main hole text FIRST (before adding hidden input)
         const avgMainHoleCell = avgRow.querySelector('.item-main-hole');
         avgMainHoleCell.textContent = '(DEPAN + BELAKANG) / 2';
         
-        // NOW create and append NEW hidden input AFTER everything else
+        // NOW create and append hidden input AFTER setting textContent
         const avgHiddenInput = document.createElement('input');
         avgHiddenInput.type = 'hidden';
         avgHiddenInput.name = `items[${avgIndex}][tank_id]`;
@@ -1087,6 +1068,12 @@ document.addEventListener('DOMContentLoaded', function () {
             parentCell: avgMainHoleCell.className,
             stillInDom: document.contains(avgHiddenInput)
         });
+        
+        // Update name attributes for average row
+        avgRow.querySelectorAll('input, select').forEach(field => {
+            field.name = field.name.replace(/items\[\d+\]/, `items[${avgIndex}]`);
+            // DON'T clear sounding values - they will be auto-calculated
+            // Only clear user-input fields that shouldn't be copied from DEPAN row
             if (field.name.includes('[attachment_key]') || 
                 field.name.includes('[jam_pagi]') || field.name.includes('[jam_sore]') ||
                 field.name.includes('[fm_pagi]') || field.name.includes('[fm_sore]') ||
