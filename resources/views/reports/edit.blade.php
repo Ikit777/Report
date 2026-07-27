@@ -1182,10 +1182,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update name attributes for BELAKANG row
         belakangRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${belakangIndex}]`);
-            // Clear values except tank_id and petugas (keep petugas filled)
+            // Clear values except tank_id (by class or data-attr), petugas fields, and main_hole_variant
             if (!field.matches('[data-item-type="tank_id"]') && 
+                !field.matches('.tank-id-input') && 
+                !field.name.includes('[tank_id]') &&
                 !field.name.includes('[petugas_pagi]') && 
-                !field.name.includes('[petugas_sore]')) {
+                !field.name.includes('[petugas_sore]') &&
+                !field.name.includes('[main_hole_variant]')) {
                 field.value = '';
             }
         });
@@ -1215,10 +1218,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update name attributes for average row
         avgRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${avgIndex}]`);
-            // Clear values except tank_id and petugas (keep petugas filled)
+            // Clear values except tank_id (by class or data-attr), petugas fields, and main_hole_variant
             if (!field.matches('[data-item-type="tank_id"]') && 
+                !field.matches('.tank-id-input') && 
+                !field.name.includes('[tank_id]') &&
                 !field.name.includes('[petugas_pagi]') && 
-                !field.name.includes('[petugas_sore]')) {
+                !field.name.includes('[petugas_sore]') &&
+                !field.name.includes('[main_hole_variant]')) {
                 field.value = '';
             }
             // Make sounding inputs readonly for average row
