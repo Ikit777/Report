@@ -1491,6 +1491,21 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('input[data-photo-input]').forEach(renderSelectedPhotos);
 
     document.getElementById('reportForm').addEventListener('submit', event => {
+        // Debug: Log all tank_id inputs before submit
+        console.log('=== FORM SUBMIT DEBUG ===');
+        const tankIdInputs = document.querySelectorAll('input[name*="[tank_id]"]');
+        tankIdInputs.forEach((input, idx) => {
+            const row = input.closest('tr');
+            const mainHole = row?.querySelector('.item-main-hole')?.textContent;
+            console.log(`Item ${idx}:`, {
+                name: input.name,
+                value: input.value,
+                mainHole: mainHole,
+                parentCell: input.parentElement?.className,
+                exists: !!input.value
+            });
+        });
+        
         const totalPhotoBytes = Array.from(document.querySelectorAll('input[data-photo-input]'))
             .flatMap(input => Array.from(input.files))
             .reduce((total, file) => total + file.size, 0);
