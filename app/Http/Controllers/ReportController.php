@@ -589,37 +589,45 @@ class ReportController extends Controller
     
     private function saveAvgMainHoleTankItems(DailyReport $report, Tank $tank, array $data)
     {
-        // Row 1: DEPAN (use input data as-is, store in keterangan)
-        $depanData = array_merge($data, [
-            'keterangan' => 'DEPAN' . ($data['keterangan'] ? ' - ' . $data['keterangan'] : ''),
-        ]);
-        $depanItem = $this->createItemFromData($tank, $depanData);
+        // Row 1: DEPAN (use input data as-is)
+        $depanItem = $this->createItemFromData($tank, $data);
+        $depanItem->main_hole_variant = 'DEPAN';
         $report->items()->save($depanItem);
         
         // Row 2: BELAKANG (empty data, same tank)
         $belakangData = array_merge($data, [
             'sounding_pagi' => null,
             'liter_pagi' => null,
+            'jam_pagi' => null,
+            'petugas_pagi' => $data['petugas_pagi'] ?? null,
             'sounding_sore' => null,
             'liter_sore' => null,
+            'jam_sore' => null,
+            'petugas_sore' => $data['petugas_sore'] ?? null,
             'fm_pagi' => null,
             'fm_sore' => null,
-            'keterangan' => 'BELAKANG',
+            'keterangan' => null,
         ]);
         $belakangItem = $this->createItemFromData($tank, $belakangData);
+        $belakangItem->main_hole_variant = 'BELAKANG';
         $report->items()->save($belakangItem);
         
         // Row 3: (DEPAN + BELAKANG) / 2 (empty, will be calculated)
         $avgData = array_merge($data, [
             'sounding_pagi' => null,
             'liter_pagi' => null,
+            'jam_pagi' => null,
+            'petugas_pagi' => $data['petugas_pagi'] ?? null,
             'sounding_sore' => null,
             'liter_sore' => null,
+            'jam_sore' => null,
+            'petugas_sore' => $data['petugas_sore'] ?? null,
             'fm_pagi' => null,
             'fm_sore' => null,
-            'keterangan' => '(DEPAN + BELAKANG) / 2',
+            'keterangan' => null,
         ]);
         $avgItem = $this->createItemFromData($tank, $avgData);
+        $avgItem->main_hole_variant = '(DEPAN + BELAKANG) / 2';
         $report->items()->save($avgItem);
         
         // Save photos for DEPAN row only

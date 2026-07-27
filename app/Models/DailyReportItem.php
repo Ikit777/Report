@@ -10,6 +10,7 @@ class DailyReportItem extends Model
     protected $fillable = [
         'daily_report_id',
         'tank_id',
+        'main_hole_variant',
         'sounding_pagi',
         'liter_pagi',
         'jam_pagi',
