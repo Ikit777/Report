@@ -20,7 +20,9 @@
                     <input type="hidden" name="items[{{ $i }}][attachment_key]" value="item-{{ $savedItem->tank_id }}">
                     <input type="hidden" name="items[{{ $i }}][main_hole_variant]" value="{{ $savedItem->main_hole_variant }}">
                 @endif
-                <select name="items[{{ $i }}][tank_id]" class="sheet-input tank-select" data-item-type="tank_id">
+                <!-- Tank ID selector with hidden input for submission -->
+                <input type="hidden" name="items[{{ $i }}][tank_id]" value="{{ $selectedTankId }}" class="tank-id-input">
+                <select class="sheet-input tank-select" data-item-type="tank_id">
                     <option value="">Pilih tangki</option>
                     @foreach($tanks as $tank)
                         <option value="{{ $tank->id }}" 

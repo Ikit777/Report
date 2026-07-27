@@ -625,16 +625,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             
-            // Create action cell if it doesn't exist
-            if (!actionCell) {
+            // Create action cell if it doesn't exist AND row is not part of rowspan group
+            if (!actionCell && !row.dataset.avgType) {
                 actionCell = document.createElement('td');
                 actionCell.className = 'row-action';
                 actionCell.style.textAlign = 'center';
                 row.appendChild(actionCell);
             }
             
-            // Always add delete button if action cell exists (including empty cells from database)
-            if (actionCell && !actionCell.hasAttribute('rowspan')) {
+            // Only add delete button if:
+            // 1. Action cell exists
+            // 2. Cell doesn't have rowspan (it's not the main row of a group)
+            // 3. Row is NOT belakang or average type (only DEPAN should have delete button)
+            if (actionCell && !actionCell.hasAttribute('rowspan') && 
+                (!row.dataset.avgType || row.dataset.avgType === 'depan')) {
                 actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
             }
 
@@ -987,8 +991,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update name attributes for BELAKANG row
         belakangRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${belakangIndex}]`);
-            // Clear values except tank_id
-            if (!field.matches('[data-item-type="tank_id"]')) {
+            // Clear values except tank_id and petugas (keep petugas filled)
+            if (!field.matches('[data-item-type="tank_id"]') && 
+                !field.name.includes('[petugas_pagi]') && 
+                !field.name.includes('[petugas_sore]')) {
                 field.value = '';
             }
         });
@@ -1012,8 +1018,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update name attributes for average row
         avgRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${avgIndex}]`);
-            // Clear values except tank_id
-            if (!field.matches('[data-item-type="tank_id"]')) {
+            // Clear values except tank_id and petugas (keep petugas filled)
+            if (!field.matches('[data-item-type="tank_id"]') && 
+                !field.name.includes('[petugas_pagi]') && 
+                !field.name.includes('[petugas_sore]')) {
                 field.value = '';
             }
             // Make sounding inputs readonly for average row
