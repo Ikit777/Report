@@ -1154,6 +1154,11 @@ document.addEventListener('DOMContentLoaded', function () {
     reportItemRows.addEventListener('change', event => {
         if (event.target.matches('[data-item-type="tank_id"]')) {
             const row = event.target.closest('tr');
+            // Sync dropdown value to hidden input
+            const hiddenTankIdInput = row.querySelector('.tank-id-input');
+            if (hiddenTankIdInput) {
+                hiddenTankIdInput.value = event.target.value;
+            }
             updateItemMainHole(row);
             handleAvgMainHoleTank(row);
             return;
