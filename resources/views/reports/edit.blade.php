@@ -1032,10 +1032,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const select = row.querySelector('[data-item-type="tank_id"]');
         const mainHole = select.selectedOptions[0]?.dataset.mainHole || '';
         
+        console.log('handleAvgMainHoleTank called', { mainHole, tankId: select.value });
+        
         // Check if main_hole is "(DEPAN + BELAKANG) / 2"
         if (mainHole !== '(DEPAN + BELAKANG) / 2') {
+            console.log('Not a DEPAN+BELAKANG tank, skipping');
             return;
         }
+        
+        console.log('This is a DEPAN+BELAKANG tank, will generate 3 rows');
         
         // Get current row index
         const rowIndex = Array.from(reportItemRows.querySelectorAll('tr')).indexOf(row);

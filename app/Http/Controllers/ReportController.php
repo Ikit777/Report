@@ -555,67 +555,139 @@ class ReportController extends Controller
      */
     private function saveItems(DailyReport $report, array $itemsData)
     {
+        \Log::info('Saving items', ['count' => count($itemsData), 'items' => $itemsData]);
+        
         // Every tank row, including SPM3 (D+B)/2, is saved from manual input.
-        foreach ($itemsData as $data) {
+        foreach ($itemsData as $index => $data) {
             if (empty($data['tank_id'])) {
+                \Log::info("Skipping item at index {$index}: no tank_id");
                 continue;
             }
 
             $tankId = $data['tank_id'];
             $tank = Tank::find($tankId);
-
-            // Get sounding values
-            $soundingPagi = isset($data['sounding_pagi']) && $data['sounding_pagi'] !== '' ? (double)$data['sounding_pagi'] : null;
-            $soundingSore = isset($data['sounding_sore']) && $data['sounding_sore'] !== '' ? (double)$data['sounding_sore'] : null;
-
-            // Calculate liter from sounding using calibration data
-            $literPagi = null;
-            $literSore = null;
             
-            if ($tank) {
-                if ($soundingPagi !== null) {
-                    $literPagi = $tank->soundingToLiter($soundingPagi);
-                }
-                if ($soundingSore !== null) {
-                    $literSore = $tank->soundingToLiter($soundingSore);
-                }
-            }
-
-            // Calculate Flow Meter Usage: fm_sore - fm_pagi (hanya jika KEDUA terisi)
-            $fmPagi = isset($data['fm_pagi']) && $data['fm_pagi'] !== '' ? (double)$data['fm_pagi'] : null;
-            $fmSore = isset($data['fm_sore']) && $data['fm_sore'] !== '' ? (double)$data['fm_sore'] : null;
-            $fmPakai = null;
-            if ($fmPagi !== null && $fmSore !== null) {
-                $fmPakai = $fmSore - $fmPagi;
-            }
-
-            $item = new DailyReportItem([
+            \Log::info("Processing item {$index}", [
                 'tank_id' => $tankId,
-                'sounding_pagi' => $soundingPagi,
-                'liter_pagi' => $literPagi,
-                'jam_pagi' => $data['jam_pagi'] ?: null,
-                'petugas_pagi' => $data['petugas_pagi'] ?: null,
-                
-                'sounding_sore' => $soundingSore,
-                'liter_sore' => $literSore,
-                'jam_sore' => $data['jam_sore'] ?: null,
-                'petugas_sore' => $data['petugas_sore'] ?: null,
-                
-                'fm_pagi' => $fmPagi,
-                'fm_sore' => $fmSore,
-                'fm_pakai' => $fmPakai,
-                'keterangan' => $data['keterangan'] ?: null,
+                'tank_code' => $tank?->code,
+                'main_hole' => $tank?->main_hole,
             ]);
 
-            $report->items()->save($item);
+            // Check if this tank has main_hole "(DEPAN + BELAKANG) / 2"
+            if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2') {
+                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type, will create 3 rows");
+                
+                // Create 3 rows: DEPAN, BELAKANG, and average
+                $this->saveAvgMainHoleTankItems($report, $tank, $data);
+                continue; // Skip normal save for this tank
+            }
 
-            $context = trim(implode(' — ', array_filter([
-                'Tangki ' . ($tank?->code ?? '-'),
-                $tank?->main_hole,
-                $data['keterangan'] ?? null,
-            ])));
-            $this->saveAttachmentPhotos($report, 'A', $data['attachment_key'] ?? "item-{$tankId}", $context, $data['photos'] ?? []);
+            // Normal single row save
+            $this->saveSingleItem($report, $tank, $data);
         }
+    }
+    
+    private function saveAvgMainHoleTankItems(DailyReport $report, Tank $tank, array $data)
+    {
+        // Row 1: DEPAN (use input data as-is, store in keterangan)
+        $depanData = array_merge($data, [
+            'keterangan' => 'DEPAN' . ($data['keterangan'] ? ' - ' . $data['keterangan'] : ''),
+        ]);
+        $depanItem = $this->createItemFromData($tank, $depanData);
+        $report->items()->save($depanItem);
+        
+        // Row 2: BELAKANG (empty data, same tank)
+        $belakangData = array_merge($data, [
+            'sounding_pagi' => null,
+            'liter_pagi' => null,
+            'sounding_sore' => null,
+            'liter_sore' => null,
+            'fm_pagi' => null,
+            'fm_sore' => null,
+            'keterangan' => 'BELAKANG',
+        ]);
+        $belakangItem = $this->createItemFromData($tank, $belakangData);
+        $report->items()->save($belakangItem);
+        
+        // Row 3: (DEPAN + BELAKANG) / 2 (empty, will be calculated)
+        $avgData = array_merge($data, [
+            'sounding_pagi' => null,
+            'liter_pagi' => null,
+            'sounding_sore' => null,
+            'liter_sore' => null,
+            'fm_pagi' => null,
+            'fm_sore' => null,
+            'keterangan' => '(DEPAN + BELAKANG) / 2',
+        ]);
+        $avgItem = $this->createItemFromData($tank, $avgData);
+        $report->items()->save($avgItem);
+        
+        // Save photos for DEPAN row only
+        $context = trim(implode(' — ', array_filter([
+            'Tangki ' . ($tank?->code ?? '-'),
+            'DEPAN',
+            $data['keterangan'] ?? null,
+        ])));
+        $this->saveAttachmentPhotos($report, 'A', $data['attachment_key'] ?? "item-{$tank->id}", $context, $data['photos'] ?? []);
+    }
+    
+    private function saveSingleItem(DailyReport $report, ?Tank $tank, array $data)
+    {
+        $item = $this->createItemFromData($tank, $data);
+        $report->items()->save($item);
+
+        $context = trim(implode(' — ', array_filter([
+            'Tangki ' . ($tank?->code ?? '-'),
+            $tank?->main_hole,
+            $data['keterangan'] ?? null,
+        ])));
+        $this->saveAttachmentPhotos($report, 'A', $data['attachment_key'] ?? "item-{$tank->id}", $context, $data['photos'] ?? []);
+    }
+    
+    private function createItemFromData(?Tank $tank, array $data): DailyReportItem
+    {
+        // Get sounding values
+        $soundingPagi = isset($data['sounding_pagi']) && $data['sounding_pagi'] !== '' ? (double)$data['sounding_pagi'] : null;
+        $soundingSore = isset($data['sounding_sore']) && $data['sounding_sore'] !== '' ? (double)$data['sounding_sore'] : null;
+
+        // Calculate liter from sounding using calibration data
+        $literPagi = null;
+        $literSore = null;
+        
+        if ($tank) {
+            if ($soundingPagi !== null) {
+                $literPagi = $tank->soundingToLiter($soundingPagi);
+            }
+            if ($soundingSore !== null) {
+                $literSore = $tank->soundingToLiter($soundingSore);
+            }
+        }
+
+        // Calculate Flow Meter Usage: fm_sore - fm_pagi (hanya jika KEDUA terisi)
+        $fmPagi = isset($data['fm_pagi']) && $data['fm_pagi'] !== '' ? (double)$data['fm_pagi'] : null;
+        $fmSore = isset($data['fm_sore']) && $data['fm_sore'] !== '' ? (double)$data['fm_sore'] : null;
+        $fmPakai = null;
+        if ($fmPagi !== null && $fmSore !== null) {
+            $fmPakai = $fmSore - $fmPagi;
+        }
+
+        return new DailyReportItem([
+            'tank_id' => $tank?->id,
+            'sounding_pagi' => $soundingPagi,
+            'liter_pagi' => $literPagi,
+            'jam_pagi' => $data['jam_pagi'] ?: null,
+            'petugas_pagi' => $data['petugas_pagi'] ?: null,
+            
+            'sounding_sore' => $soundingSore,
+            'liter_sore' => $literSore,
+            'jam_sore' => $data['jam_sore'] ?: null,
+            'petugas_sore' => $data['petugas_sore'] ?: null,
+            
+            'fm_pagi' => $fmPagi,
+            'fm_sore' => $fmSore,
+            'fm_pakai' => $fmPakai,
+            'keterangan' => $data['keterangan'] ?: null,
+        ]);
     }
 
     private function saveTransfers(DailyReport $report, array $transfersData)
