@@ -14,6 +14,21 @@
             $mainHoleDisplay = $selectedTank?->main_hole ?? '-';
             if ($savedItem && $savedItem->main_hole_variant) {
                 $mainHoleDisplay = $savedItem->main_hole_variant;
+            } elseif ($savedItem && $selectedTank && $selectedTank->main_hole === '(DEPAN + BELAKANG) / 2') {
+                // Fallback for old data: detect variant based on position in group
+                $sameTankItems = $savedItems->where('tank_id', $selectedTankId);
+                if ($sameTankItems->count() === 3) {
+                    $position = $sameTankItems->search(function($item) use ($savedItem) {
+                        return $item->id === $savedItem->id;
+                    });
+                    if ($position === 0) {
+                        $mainHoleDisplay = 'DEPAN';
+                    } elseif ($position === 1) {
+                        $mainHoleDisplay = 'BELAKANG';
+                    } elseif ($position === 2) {
+                        $mainHoleDisplay = '(DEPAN + BELAKANG) / 2';
+                    }
+                }
             }
         @endphp
         <tr>
