@@ -982,8 +982,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const belakangIndex = reportItemRows.querySelectorAll('tr').length;
         const belakangRow = row.cloneNode(true);
         
-        // IMPORTANT: Create new hidden tank_id input in main-hole cell (don't rely on moved input)
+        console.log('Creating BELAKANG row', { belakangIndex, tankId: select.value });
+        
+        // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
+        belakangRow.querySelector('.row-number')?.remove();
+        belakangRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
+        belakangRow.querySelector('.row-action')?.remove();
+        
+        // Set main hole text FIRST (before adding hidden input)
         const belakangMainHoleCell = belakangRow.querySelector('.item-main-hole');
+        belakangMainHoleCell.textContent = 'BELAKANG';
+        
+        // NOW create and append hidden input AFTER setting textContent
         const belakangHiddenInput = document.createElement('input');
         belakangHiddenInput.type = 'hidden';
         belakangHiddenInput.name = `items[${belakangIndex}][tank_id]`;
@@ -991,12 +1001,14 @@ document.addEventListener('DOMContentLoaded', function () {
         belakangHiddenInput.className = 'tank-id-input';
         belakangMainHoleCell.appendChild(belakangHiddenInput);
         
-        // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
-        belakangRow.querySelector('.row-number')?.remove();
-        belakangRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
-        belakangRow.querySelector('.row-action')?.remove();
-        belakangRow.querySelector('.item-main-hole').textContent = 'BELAKANG';
         belakangRow.dataset.avgType = 'belakang';
+        
+        console.log('Created hidden input for BELAKANG', {
+            name: belakangHiddenInput.name,
+            value: belakangHiddenInput.value,
+            parentCell: belakangMainHoleCell.className,
+            stillInDom: document.contains(belakangHiddenInput)
+        });
         
         // Update name attributes for BELAKANG row
         belakangRow.querySelectorAll('input, select').forEach(field => {
@@ -1019,8 +1031,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const avgIndex = belakangIndex + 1;
         const avgRow = row.cloneNode(true);
         
-        // IMPORTANT: Create new hidden tank_id input in main-hole cell (don't rely on moved input)
+        console.log('Creating average row', { avgIndex, tankId: select.value });
+        
+        // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
+        avgRow.querySelector('.row-number')?.remove();
+        avgRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
+        avgRow.querySelector('.row-action')?.remove();
+        
+        // Set main hole text FIRST (before adding hidden input)
         const avgMainHoleCell = avgRow.querySelector('.item-main-hole');
+        avgMainHoleCell.textContent = '(DEPAN + BELAKANG) / 2';
+        
+        // NOW create and append hidden input AFTER setting textContent
         const avgHiddenInput = document.createElement('input');
         avgHiddenInput.type = 'hidden';
         avgHiddenInput.name = `items[${avgIndex}][tank_id]`;
@@ -1028,12 +1050,14 @@ document.addEventListener('DOMContentLoaded', function () {
         avgHiddenInput.className = 'tank-id-input';
         avgMainHoleCell.appendChild(avgHiddenInput);
         
-        // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
-        avgRow.querySelector('.row-number')?.remove();
-        avgRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
-        avgRow.querySelector('.row-action')?.remove();
-        avgRow.querySelector('.item-main-hole').textContent = '(DEPAN + BELAKANG) / 2';
         avgRow.dataset.avgType = 'average';
+        
+        console.log('Created hidden input for average', {
+            name: avgHiddenInput.name,
+            value: avgHiddenInput.value,
+            parentCell: avgMainHoleCell.className,
+            stillInDom: document.contains(avgHiddenInput)
+        });
         
         // Update name attributes for average row
         avgRow.querySelectorAll('input, select').forEach(field => {

@@ -555,14 +555,18 @@ class ReportController extends Controller
      */
     private function saveItems(DailyReport $report, array $itemsData)
     {
-        \Log::info('Saving items', ['count' => count($itemsData)]);
+        \Log::info('=== SAVING ITEMS START ===');
+        \Log::info('Total items received', ['count' => count($itemsData)]);
         
-        // Log raw items data
+        // Log raw items data with more detail
         foreach ($itemsData as $index => $data) {
             \Log::info("Raw item {$index}", [
-                'tank_id' => $data['tank_id'] ?? 'missing',
+                'has_tank_id' => isset($data['tank_id']),
+                'tank_id' => $data['tank_id'] ?? 'MISSING',
+                'tank_id_empty' => empty($data['tank_id']),
                 'sounding_pagi' => $data['sounding_pagi'] ?? 'missing',
                 'sounding_sore' => $data['sounding_sore'] ?? 'missing',
+                'all_keys' => array_keys($data),
             ]);
         }
         
@@ -570,7 +574,10 @@ class ReportController extends Controller
         $itemsByTank = [];
         foreach ($itemsData as $index => $data) {
             if (empty($data['tank_id'])) {
-                \Log::info("Skipping item at index {$index}: no tank_id");
+                \Log::warning("!!! SKIPPING item at index {$index}: tank_id is empty or missing !!!", [
+                    'tank_id_value' => $data['tank_id'] ?? 'NOT SET',
+                    'has_key' => array_key_exists('tank_id', $data),
+                ]);
                 continue;
             }
             $tankId = $data['tank_id'];
@@ -578,7 +585,10 @@ class ReportController extends Controller
                 $itemsByTank[$tankId] = [];
             }
             $itemsByTank[$tankId][] = ['index' => $index, 'data' => $data];
+            \Log::info("Added item {$index} to tank group {$tankId}");
         }
+        
+        \Log::info('Items grouped by tank', ['groups' => array_keys($itemsByTank), 'group_counts' => array_map('count', $itemsByTank)]);
         
         // Process each tank group
         foreach ($itemsByTank as $tankId => $items) {
