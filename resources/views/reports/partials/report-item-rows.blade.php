@@ -85,11 +85,12 @@
                 </select>
             </td>
             <td class="item-main-hole" style="text-align: center;">
+                {{-- MAIN HOLE DISPLAY - Last updated: 2026-07-27 15:00 --}}
                 @if($savedItem && $savedItem->main_hole_variant)
                     {{ $savedItem->main_hole_variant }}
                 @elseif($savedItem && $selectedTank && $selectedTank->main_hole === '(DEPAN + BELAKANG) / 2')
                     @php
-                        // Fallback: determine variant by position
+                        // Fallback for old data without main_hole_variant
                         $sameTankItems = $savedItems->filter(fn($item) => $item->tank_id == $selectedTankId);
                         if ($sameTankItems->count() === 3) {
                             $itemIndex = 0;
