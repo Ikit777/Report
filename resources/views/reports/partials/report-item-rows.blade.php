@@ -9,6 +9,24 @@
             $savedItem = $savedItems->get($i);
             $selectedTankId = old("items.{$i}.tank_id", $savedItem?->tank_id);
             $selectedTank = $tanks->firstWhere('id', $selectedTankId);
+            
+            // Determine main_hole display based on keterangan marker
+            $mainHoleDisplay = $selectedTank?->main_hole ?? '-';
+            if ($savedItem && $savedItem->keterangan) {
+                if (str_starts_with($savedItem->keterangan, '[DEPAN]')) {
+                    $mainHoleDisplay = 'DEPAN';
+                } elseif (str_starts_with($savedItem->keterangan, '[BELAKANG]')) {
+                    $mainHoleDisplay = 'BELAKANG';
+                } elseif (str_starts_with($savedItem->keterangan, '[(DEPAN + BELAKANG) / 2]')) {
+                    $mainHoleDisplay = '(DEPAN + BELAKANG) / 2';
+                }
+            }
+            
+            // Remove marker from keterangan for display
+            $keteranganDisplay = $savedItem?->keterangan;
+            if ($keteranganDisplay && preg_match('/^\[(DEPAN|BELAKANG|\(DEPAN \+ BELAKANG\) \/ 2)\]\s*(.*)$/', $keteranganDisplay, $matches)) {
+                $keteranganDisplay = $matches[2];
+            }
         @endphp
         <tr>
             <td class="row-number" style="text-align: center;">{{ $i + 1 }}</td>
@@ -28,7 +46,7 @@
                     @endforeach
                 </select>
             </td>
-            <td class="item-main-hole" style="text-align: center;">{{ $savedItem?->main_hole_display ?? $selectedTank?->main_hole ?? '-' }}</td>
+            <td class="item-main-hole" style="text-align: center;">{{ $mainHoleDisplay }}</td>
             <td><input type="number" step="0.01" name="items[{{ $i }}][sounding_pagi]" class="sheet-input" data-item-type="sounding_pagi" value="{{ old("items.{$i}.sounding_pagi", $savedItem?->sounding_pagi) }}"></td>
             <td><input type="text" name="items[{{ $i }}][liter_pagi]" class="sheet-input read-only" data-item-type="liter_pagi" value="{{ old("items.{$i}.liter_pagi", $savedItem && $savedItem->sounding_pagi !== null && Auth::user()->isFuelman() ? 'XXXX' : ($savedItem?->liter_pagi ?? '')) }}" readonly></td>
             <td><input type="time" name="items[{{ $i }}][jam_pagi]" class="sheet-input" value="{{ old("items.{$i}.jam_pagi", $savedItem?->jam_pagi ? \Carbon\Carbon::parse($savedItem->jam_pagi)->format('H:i') : '') }}"></td>
@@ -40,7 +58,7 @@
             <td><input type="text" inputmode="decimal" name="items[{{ $i }}][fm_pagi]" class="sheet-input" data-item-type="fm_pagi" value="{{ old("items.{$i}.fm_pagi", $savedItem?->fm_pagi) }}"></td>
             <td><input type="text" inputmode="decimal" name="items[{{ $i }}][fm_sore]" class="sheet-input" data-item-type="fm_sore" value="{{ old("items.{$i}.fm_sore", $savedItem?->fm_sore) }}"></td>
             <td><input type="number" name="items[{{ $i }}][fm_pakai]" class="sheet-input read-only" data-item-type="fm_pakai" value="{{ old("items.{$i}.fm_pakai", $savedItem && $savedItem->fm_pakai !== null && $savedItem->fm_pakai != 0 ? $savedItem->fm_pakai : '') }}" readonly></td>
-            <td><input type="text" name="items[{{ $i }}][keterangan]" class="sheet-input" value="{{ old("items.{$i}.keterangan", $savedItem?->keterangan_display ?? $savedItem?->keterangan) }}"></td>
+            <td><input type="text" name="items[{{ $i }}][keterangan]" class="sheet-input" value="{{ old("items.{$i}.keterangan", $keteranganDisplay) }}"></td>
             <td class="photo-upload-cell">
                 @php
                     $existingAttachments = $savedItem && isset($report)

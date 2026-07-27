@@ -557,33 +557,58 @@ class ReportController extends Controller
     {
         \Log::info('Saving items', ['count' => count($itemsData), 'items' => $itemsData]);
         
-        // Every tank row, including SPM3 (D+B)/2, is saved from manual input.
+        // Group items by tank_id to detect 3-row groups
+        $itemsByTank = [];
         foreach ($itemsData as $index => $data) {
             if (empty($data['tank_id'])) {
                 \Log::info("Skipping item at index {$index}: no tank_id");
                 continue;
             }
-
             $tankId = $data['tank_id'];
+            if (!isset($itemsByTank[$tankId])) {
+                $itemsByTank[$tankId] = [];
+            }
+            $itemsByTank[$tankId][] = ['index' => $index, 'data' => $data];
+        }
+        
+        // Process each tank group
+        foreach ($itemsByTank as $tankId => $items) {
             $tank = Tank::find($tankId);
             
-            \Log::info("Processing item {$index}", [
-                'tank_id' => $tankId,
+            \Log::info("Processing tank {$tankId}", [
                 'tank_code' => $tank?->code,
                 'main_hole' => $tank?->main_hole,
+                'row_count' => count($items),
             ]);
 
             // Check if this tank has main_hole "(DEPAN + BELAKANG) / 2"
-            if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2') {
-                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type, will create 3 rows");
+            // AND has exactly 3 rows submitted (meaning it's a 3-row group from form)
+            if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2' && count($items) === 3) {
+                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type with 3 rows from form");
                 
-                // Create 3 rows: DEPAN, BELAKANG, and average
-                $this->saveAvgMainHoleTankItems($report, $tank, $data);
-                continue; // Skip normal save for this tank
+                // Add markers to keterangan for each row
+                $items[0]['data']['keterangan'] = '[DEPAN]' . ($items[0]['data']['keterangan'] ? ' ' . $items[0]['data']['keterangan'] : '');
+                $items[1]['data']['keterangan'] = '[BELAKANG]' . ($items[1]['data']['keterangan'] ? ' ' . $items[1]['data']['keterangan'] : '');
+                $items[2]['data']['keterangan'] = '[(DEPAN + BELAKANG) / 2]' . ($items[2]['data']['keterangan'] ? ' ' . $items[2]['data']['keterangan'] : '');
+                
+                // Save each row
+                foreach ($items as $item) {
+                    $this->saveSingleItem($report, $tank, $item['data']);
+                }
+                continue;
+            }
+            
+            // Check if user is creating NEW report with this tank type (only 1 row submitted)
+            if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2' && count($items) === 1) {
+                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type, will create 3 rows");
+                $this->saveAvgMainHoleTankItems($report, $tank, $items[0]['data']);
+                continue;
             }
 
-            // Normal single row save
-            $this->saveSingleItem($report, $tank, $data);
+            // Normal single or multiple separate rows
+            foreach ($items as $item) {
+                $this->saveSingleItem($report, $tank, $item['data']);
+            }
         }
     }
     
