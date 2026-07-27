@@ -999,13 +999,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update name attributes for BELAKANG row
         belakangRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${belakangIndex}]`);
-            // Clear values except tank_id (by class or data-attr), petugas fields, and main_hole_variant
-            if (!field.matches('[data-item-type="tank_id"]') && 
-                !field.matches('.tank-id-input') && 
-                !field.name.includes('[tank_id]') &&
-                !field.name.includes('[petugas_pagi]') && 
-                !field.name.includes('[petugas_sore]') &&
-                !field.name.includes('[main_hole_variant]')) {
+            // DON'T clear sounding values - user needs to fill them manually
+            // Only clear NON-user-input fields: liter (calculated), photos, attachment_key
+            if (field.name.includes('[attachment_key]') || 
+                field.matches('[data-item-type="liter_pagi"], [data-item-type="liter_sore"], [data-item-type="fm_pakai"]')) {
                 field.value = '';
             }
         });
@@ -1037,13 +1034,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update name attributes for average row
         avgRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${avgIndex}]`);
-            // Clear values except tank_id (by class or data-attr), petugas fields, and main_hole_variant
-            if (!field.matches('[data-item-type="tank_id"]') && 
-                !field.matches('.tank-id-input') && 
-                !field.name.includes('[tank_id]') &&
-                !field.name.includes('[petugas_pagi]') && 
-                !field.name.includes('[petugas_sore]') &&
-                !field.name.includes('[main_hole_variant]')) {
+            // DON'T clear sounding values - they will be auto-calculated
+            // Only clear user-input fields that shouldn't be copied from DEPAN row
+            if (field.name.includes('[attachment_key]') || 
+                field.name.includes('[jam_pagi]') || field.name.includes('[jam_sore]') ||
+                field.name.includes('[fm_pagi]') || field.name.includes('[fm_sore]') ||
+                field.name.includes('[keterangan]') ||
+                field.matches('[data-item-type="liter_pagi"], [data-item-type="liter_sore"], [data-item-type="fm_pakai"]')) {
                 field.value = '';
             }
             // Make sounding inputs readonly for average row
