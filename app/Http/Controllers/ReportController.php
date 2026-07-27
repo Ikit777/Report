@@ -555,7 +555,16 @@ class ReportController extends Controller
      */
     private function saveItems(DailyReport $report, array $itemsData)
     {
-        \Log::info('Saving items', ['count' => count($itemsData), 'items' => $itemsData]);
+        \Log::info('Saving items', ['count' => count($itemsData)]);
+        
+        // Log raw items data
+        foreach ($itemsData as $index => $data) {
+            \Log::info("Raw item {$index}", [
+                'tank_id' => $data['tank_id'] ?? 'missing',
+                'sounding_pagi' => $data['sounding_pagi'] ?? 'missing',
+                'sounding_sore' => $data['sounding_sore'] ?? 'missing',
+            ]);
+        }
         
         // Group items by tank_id to detect 3-row groups
         $itemsByTank = [];

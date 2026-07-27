@@ -982,16 +982,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const belakangIndex = reportItemRows.querySelectorAll('tr').length;
         const belakangRow = row.cloneNode(true);
         
-        // IMPORTANT: Move hidden tank_id input to main-hole cell BEFORE removing tank-code-cell
-        const belakangTankIdInput = belakangRow.querySelector('.tank-id-input');
+        // IMPORTANT: Create new hidden tank_id input in main-hole cell (don't rely on moved input)
         const belakangMainHoleCell = belakangRow.querySelector('.item-main-hole');
-        if (belakangTankIdInput && belakangMainHoleCell) {
-            belakangMainHoleCell.appendChild(belakangTankIdInput);
-        }
+        const belakangHiddenInput = document.createElement('input');
+        belakangHiddenInput.type = 'hidden';
+        belakangHiddenInput.name = `items[${belakangIndex}][tank_id]`;
+        belakangHiddenInput.value = select.value;
+        belakangHiddenInput.className = 'tank-id-input';
+        belakangMainHoleCell.appendChild(belakangHiddenInput);
         
         // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
         belakangRow.querySelector('.row-number')?.remove();
-        belakangRow.querySelector('.tank-code-cell')?.remove();
+        belakangRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
         belakangRow.querySelector('.row-action')?.remove();
         belakangRow.querySelector('.item-main-hole').textContent = 'BELAKANG';
         belakangRow.dataset.avgType = 'belakang';
@@ -1017,16 +1019,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const avgIndex = belakangIndex + 1;
         const avgRow = row.cloneNode(true);
         
-        // IMPORTANT: Move hidden tank_id input to main-hole cell BEFORE removing tank-code-cell
-        const avgTankIdInput = avgRow.querySelector('.tank-id-input');
+        // IMPORTANT: Create new hidden tank_id input in main-hole cell (don't rely on moved input)
         const avgMainHoleCell = avgRow.querySelector('.item-main-hole');
-        if (avgTankIdInput && avgMainHoleCell) {
-            avgMainHoleCell.appendChild(avgTankIdInput);
-        }
+        const avgHiddenInput = document.createElement('input');
+        avgHiddenInput.type = 'hidden';
+        avgHiddenInput.name = `items[${avgIndex}][tank_id]`;
+        avgHiddenInput.value = select.value;
+        avgHiddenInput.className = 'tank-id-input';
+        avgMainHoleCell.appendChild(avgHiddenInput);
         
         // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
         avgRow.querySelector('.row-number')?.remove();
-        avgRow.querySelector('.tank-code-cell')?.remove();
+        avgRow.querySelector('.tank-code-cell')?.remove(); // This removes the original hidden input
         avgRow.querySelector('.row-action')?.remove();
         avgRow.querySelector('.item-main-hole').textContent = '(DEPAN + BELAKANG) / 2';
         avgRow.dataset.avgType = 'average';

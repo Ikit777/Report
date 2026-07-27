@@ -1031,6 +1031,84 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     reportItemRows.querySelectorAll('tr').forEach(updateItemMainHole);
     
+    // Detect and merge existing 3-row groups on page load (for EDIT page)
+    const mergeExisting3RowGroups = () => {
+        const allRows = Array.from(reportItemRows.querySelectorAll('tr'));
+        const processedRows = new Set();
+        
+        allRows.forEach((row, index) => {
+            if (processedRows.has(index)) return;
+            
+            const tankSelect = row.querySelector('[data-item-type="tank_id"]');
+            const tankId = tankSelect?.value;
+            if (!tankId) return;
+            
+            const tankOption = tankSelect?.selectedOptions[0];
+            const mainHole = tankOption?.dataset.mainHole;
+            if (mainHole !== '(DEPAN + BELAKANG) / 2') return;
+            
+            // Check if next 2 rows have same tank_id
+            const nextRow = allRows[index + 1];
+            const nextNextRow = allRows[index + 2];
+            if (!nextRow || !nextNextRow) return;
+            
+            const nextTankId = nextRow.querySelector('[data-item-type="tank_id"]')?.value;
+            const nextNextTankId = nextNextRow.querySelector('[data-item-type="tank_id"]')?.value;
+            
+            if (tankId === nextTankId && tankId === nextNextTankId) {
+                console.log('Found existing 3-row group for tank', tankId);
+                
+                // Mark rows with avgType
+                row.dataset.avgType = 'depan';
+                nextRow.dataset.avgType = 'belakang';
+                nextNextRow.dataset.avgType = 'average';
+                
+                // Update main hole text
+                row.querySelector('.item-main-hole').textContent = 'DEPAN';
+                nextRow.querySelector('.item-main-hole').textContent = 'BELAKANG';
+                nextNextRow.querySelector('.item-main-hole').textContent = '(DEPAN + BELAKANG) / 2';
+                
+                // Set rowspan for first row
+                const noCell = row.querySelector('.row-number');
+                const tankCell = row.querySelector('.tank-code-cell');
+                const actionCell = row.querySelector('.row-action');
+                
+                if (noCell) {
+                    noCell.setAttribute('rowspan', '3');
+                    noCell.style.verticalAlign = 'middle';
+                }
+                if (tankCell) {
+                    tankCell.setAttribute('rowspan', '3');
+                    tankCell.style.verticalAlign = 'middle';
+                }
+                if (actionCell) {
+                    actionCell.setAttribute('rowspan', '3');
+                    actionCell.style.verticalAlign = 'middle';
+                }
+                
+                // Remove NO, KODE TANGKI, ACTION cells from 2nd and 3rd rows
+                nextRow.querySelector('.row-number')?.remove();
+                nextRow.querySelector('.tank-code-cell')?.remove();
+                nextRow.querySelector('.row-action')?.remove();
+                
+                nextNextRow.querySelector('.row-number')?.remove();
+                nextNextRow.querySelector('.tank-code-cell')?.remove();
+                nextNextRow.querySelector('.row-action')?.remove();
+                
+                // Setup auto-calculation
+                setupAvgCalculation(row, nextRow, nextNextRow, tankId);
+                
+                // Mark as processed
+                processedRows.add(index);
+                processedRows.add(index + 1);
+                processedRows.add(index + 2);
+            }
+        });
+    };
+    
+    // Run merge on page load
+    mergeExisting3RowGroups();
+    
     // Define setupAvgCalculation function BEFORE using it
     const setupAvgCalculation = (depanRow, belakangRow, avgRow, tankId) => {
         const calculate = (period) => {
@@ -1166,12 +1244,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create BELAKANG row
         const belakangIndex = reportItemRows.querySelectorAll('tr').length;
         const belakangRow = row.cloneNode(true);
-        // Move hidden tank_id input to main-hole cell BEFORE removing tank-code-cell
-        const belakangTankIdInput = belakangRow.querySelector('.tank-id-input');
+        // IMPORTANT: Create new hidden tank_id input in main-hole cell (don't rely on moved input)
         const belakangMainHoleCell = belakangRow.querySelector('.item-main-hole');
-        if (belakangTankIdInput && belakangMainHoleCell) {
-            belakangMainHoleCell.appendChild(belakangTankIdInput);
-        }
+        const belakangHiddenInput = document.createElement('input');
+        belakangHiddenInput.type = 'hidden';
+        belakangHiddenInput.name = `items[${belakangIndex}][tank_id]`;
+        belakangHiddenInput.value = select.value;
+        belakangHiddenInput.className = 'tank-id-input';
+        belakangMainHoleCell.appendChild(belakangHiddenInput);
         // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
         belakangRow.querySelector('.row-number')?.remove();
         belakangRow.querySelector('.tank-code-cell')?.remove();
@@ -1202,12 +1282,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create (DEPAN + BELAKANG) / 2 row
         const avgIndex = belakangIndex + 1;
         const avgRow = row.cloneNode(true);
-        // Move hidden tank_id input to main-hole cell BEFORE removing tank-code-cell
-        const avgTankIdInput = avgRow.querySelector('.tank-id-input');
+        // IMPORTANT: Create new hidden tank_id input in main-hole cell (don't rely on moved input)
         const avgMainHoleCell = avgRow.querySelector('.item-main-hole');
-        if (avgTankIdInput && avgMainHoleCell) {
-            avgMainHoleCell.appendChild(avgTankIdInput);
-        }
+        const avgHiddenInput = document.createElement('input');
+        avgHiddenInput.type = 'hidden';
+        avgHiddenInput.name = `items[${avgIndex}][tank_id]`;
+        avgHiddenInput.value = select.value;
+        avgHiddenInput.className = 'tank-id-input';
+        avgMainHoleCell.appendChild(avgHiddenInput);
         // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
         avgRow.querySelector('.row-number')?.remove();
         avgRow.querySelector('.tank-code-cell')?.remove();
