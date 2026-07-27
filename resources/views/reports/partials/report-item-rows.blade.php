@@ -85,29 +85,16 @@
                 </select>
             </td>
             <td class="item-main-hole" style="text-align: center;">
-                {{-- MAIN HOLE DISPLAY - Last updated: 2026-07-27 15:00 --}}
-                @if($savedItem && $savedItem->main_hole_variant)
-                    {{ $savedItem->main_hole_variant }}
-                @elseif($savedItem && $selectedTank && $selectedTank->main_hole === '(DEPAN + BELAKANG) / 2')
-                    @php
-                        // Fallback for old data without main_hole_variant
-                        $sameTankItems = $savedItems->filter(fn($item) => $item->tank_id == $selectedTankId);
-                        if ($sameTankItems->count() === 3) {
-                            $itemIndex = 0;
-                            foreach ($sameTankItems as $idx => $item) {
-                                if ($item->id === $savedItem->id) {
-                                    $itemIndex = $idx;
-                                    break;
-                                }
-                            }
-                            echo $itemIndex === 0 ? 'DEPAN' : ($itemIndex === 1 ? 'BELAKANG' : '(DEPAN + BELAKANG) / 2');
-                        } else {
-                            echo $selectedTank->main_hole;
-                        }
-                    @endphp
-                @else
-                    {{ $selectedTank?->main_hole ?? '-' }}
-                @endif
+                @php
+                    // Direct display - no complex logic
+                    if ($savedItem && !empty($savedItem->main_hole_variant)) {
+                        echo $savedItem->main_hole_variant;
+                    } elseif ($selectedTank) {
+                        echo $selectedTank->main_hole;
+                    } else {
+                        echo '-';
+                    }
+                @endphp
             </td>
             <td><input type="number" step="0.01" name="items[{{ $i }}][sounding_pagi]" class="sheet-input" data-item-type="sounding_pagi" value="{{ old("items.{$i}.sounding_pagi", $savedItem?->sounding_pagi) }}"></td>
             <td><input type="text" name="items[{{ $i }}][liter_pagi]" class="sheet-input read-only" data-item-type="liter_pagi" value="{{ old("items.{$i}.liter_pagi", $savedItem && $savedItem->sounding_pagi !== null && Auth::user()->isFuelman() ? 'XXXX' : ($savedItem?->liter_pagi ?? '')) }}" readonly></td>
