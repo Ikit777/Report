@@ -1268,23 +1268,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create BELAKANG row
         const belakangIndex = reportItemRows.querySelectorAll('tr').length;
         const belakangRow = row.cloneNode(true);
-        // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
-        belakangRow.querySelector('.row-number')?.remove();
-        belakangRow.querySelector('.tank-code-cell')?.remove();
-        belakangRow.querySelector('.row-action')?.remove();
-        // Set main hole text FIRST (before adding hidden input)
-        const belakangMainHoleCell = belakangRow.querySelector('.item-main-hole');
-        belakangMainHoleCell.textContent = 'BELAKANG';
-        // NOW create and append hidden input AFTER setting textContent
-        const belakangHiddenInput = document.createElement('input');
-        belakangHiddenInput.type = 'hidden';
-        belakangHiddenInput.name = `items[${belakangIndex}][tank_id]`;
-        belakangHiddenInput.value = select.value;
-        belakangHiddenInput.className = 'tank-id-input';
-        belakangMainHoleCell.appendChild(belakangHiddenInput);
-        belakangRow.dataset.avgType = 'belakang';
         
-        // Update name attributes for BELAKANG row
+        // Update name attributes FIRST (before removing cells and creating new hidden input)
         belakangRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${belakangIndex}]`);
             // Clear values except tank_id (by class or data-attr), petugas fields, and main_hole_variant
@@ -1297,6 +1282,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 field.value = '';
             }
         });
+        
+        // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
+        belakangRow.querySelector('.row-number')?.remove();
+        belakangRow.querySelector('.tank-code-cell')?.remove(); // This removes the old cloned hidden input
+        belakangRow.querySelector('.row-action')?.remove();
+        
+        // Set main hole text FIRST (before adding hidden input)
+        const belakangMainHoleCell = belakangRow.querySelector('.item-main-hole');
+        belakangMainHoleCell.textContent = 'BELAKANG';
+        
+        // NOW create and append NEW hidden input AFTER setting textContent and updating names
+        const belakangHiddenInput = document.createElement('input');
+        belakangHiddenInput.type = 'hidden';
+        belakangHiddenInput.name = `items[${belakangIndex}][tank_id]`;
+        belakangHiddenInput.value = select.value;
+        belakangHiddenInput.className = 'tank-id-input';
+        belakangMainHoleCell.appendChild(belakangHiddenInput);
+        belakangRow.dataset.avgType = 'belakang';
         belakangRow.querySelector('[data-photo-selected]')?.replaceChildren();
         belakangRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         
@@ -1317,23 +1320,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create (DEPAN + BELAKANG) / 2 row
         const avgIndex = belakangIndex + 1;
         const avgRow = row.cloneNode(true);
-        // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
-        avgRow.querySelector('.row-number')?.remove();
-        avgRow.querySelector('.tank-code-cell')?.remove();
-        avgRow.querySelector('.row-action')?.remove();
-        // Set main hole text FIRST (before adding hidden input)
-        const avgMainHoleCell = avgRow.querySelector('.item-main-hole');
-        avgMainHoleCell.textContent = '(DEPAN + BELAKANG) / 2';
-        // NOW create and append hidden input AFTER setting textContent
-        const avgHiddenInput = document.createElement('input');
-        avgHiddenInput.type = 'hidden';
-        avgHiddenInput.name = `items[${avgIndex}][tank_id]`;
-        avgHiddenInput.value = select.value;
-        avgHiddenInput.className = 'tank-id-input';
-        avgMainHoleCell.appendChild(avgHiddenInput);
-        avgRow.dataset.avgType = 'average';
         
-        // Update name attributes for average row
+        // Update name attributes FIRST (before removing cells and creating new hidden input)
         avgRow.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${avgIndex}]`);
             // Clear values except tank_id (by class or data-attr), petugas fields, and main_hole_variant
@@ -1351,6 +1339,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 field.setAttribute('readonly', 'readonly');
             }
         });
+        
+        // Remove NO, KODE TANGKI, and ACTION cells from average row (already covered by rowspan)
+        avgRow.querySelector('.row-number')?.remove();
+        avgRow.querySelector('.tank-code-cell')?.remove(); // This removes the old cloned hidden input
+        avgRow.querySelector('.row-action')?.remove();
+        
+        // Set main hole text FIRST (before adding hidden input)
+        const avgMainHoleCell = avgRow.querySelector('.item-main-hole');
+        avgMainHoleCell.textContent = '(DEPAN + BELAKANG) / 2';
+        
+        // NOW create and append NEW hidden input AFTER setting textContent and updating names
+        const avgHiddenInput = document.createElement('input');
+        avgHiddenInput.type = 'hidden';
+        avgHiddenInput.name = `items[${avgIndex}][tank_id]`;
+        avgHiddenInput.value = select.value;
+        avgHiddenInput.className = 'tank-id-input';
+        avgMainHoleCell.appendChild(avgHiddenInput);
+        avgRow.dataset.avgType = 'average';
         avgRow.querySelector('[data-photo-selected]').replaceChildren();
         avgRow.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         
