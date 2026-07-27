@@ -1130,6 +1130,29 @@ document.addEventListener('DOMContentLoaded', function () {
         // Refresh row numbers
         refreshDynamicRows(reportItemRows, 'items');
         
+        // Add event listeners to auto-set liter to XXXX when sounding is filled
+        const setupLiterAutoFill = (targetRow) => {
+            const pagiSounding = targetRow.querySelector('[data-item-type="sounding_pagi"]');
+            const soreSounding = targetRow.querySelector('[data-item-type="sounding_sore"]');
+            const pagiLiter = targetRow.querySelector('[data-item-type="liter_pagi"]');
+            const soreLiter = targetRow.querySelector('[data-item-type="liter_sore"]');
+            
+            if (pagiSounding && pagiLiter) {
+                pagiSounding.addEventListener('input', () => {
+                    pagiLiter.value = pagiSounding.value ? 'XXXX' : '';
+                });
+            }
+            if (soreSounding && soreLiter) {
+                soreSounding.addEventListener('input', () => {
+                    soreLiter.value = soreSounding.value ? 'XXXX' : '';
+                });
+            }
+        };
+        
+        // Setup for all 3 rows (DEPAN, BELAKANG, but NOT average - average uses setupAvgCalculation)
+        setupLiterAutoFill(row); // DEPAN
+        setupLiterAutoFill(belakangRow); // BELAKANG
+        
         // Setup auto-calculation when DEPAN or BELAKANG sounding changes
         setupAvgCalculation(row, belakangRow, avgRow, currentTankId);
     };
