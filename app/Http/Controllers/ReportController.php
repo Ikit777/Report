@@ -282,8 +282,8 @@ class ReportController extends Controller
                 ->with('error', 'Hanya laporan dengan status Draft atau Direvisi yang dapat diubah.');
         }
 
-        // Load items indexed by tank_id for easy lookup in form
-        $items = $report->items->keyBy('tank_id');
+        // Load items WITHOUT keying by tank_id, so multiple rows for same tank are preserved
+        $items = $report->items; // Keep as collection, don't use keyBy
         $transfers = $report->transfers;
         $flowmeters = $report->flowmeters;
         
