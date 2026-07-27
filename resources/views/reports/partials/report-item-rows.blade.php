@@ -87,8 +87,25 @@
             <td class="item-main-hole" style="text-align: center;">
                 @if($savedItem && $savedItem->main_hole_variant)
                     {{ $savedItem->main_hole_variant }}
+                @elseif($savedItem && $selectedTank && $selectedTank->main_hole === '(DEPAN + BELAKANG) / 2')
+                    @php
+                        // Fallback: determine variant by position
+                        $sameTankItems = $savedItems->filter(fn($item) => $item->tank_id == $selectedTankId);
+                        if ($sameTankItems->count() === 3) {
+                            $itemIndex = 0;
+                            foreach ($sameTankItems as $idx => $item) {
+                                if ($item->id === $savedItem->id) {
+                                    $itemIndex = $idx;
+                                    break;
+                                }
+                            }
+                            echo $itemIndex === 0 ? 'DEPAN' : ($itemIndex === 1 ? 'BELAKANG' : '(DEPAN + BELAKANG) / 2');
+                        } else {
+                            echo $selectedTank->main_hole;
+                        }
+                    @endphp
                 @else
-                    {{ $mainHoleDisplay }}
+                    {{ $selectedTank?->main_hole ?? '-' }}
                 @endif
             </td>
             <td><input type="number" step="0.01" name="items[{{ $i }}][sounding_pagi]" class="sheet-input" data-item-type="sounding_pagi" value="{{ old("items.{$i}.sounding_pagi", $savedItem?->sounding_pagi) }}"></td>
