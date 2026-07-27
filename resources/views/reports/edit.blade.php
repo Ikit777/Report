@@ -626,6 +626,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const rowTemplates = new Map();
     const userName = '{{ Auth::user()->name }}'; // Get current user name
     
+    // ===== AUTO UPDATE LITER BASED ON SOUNDING (ONCHANGE) =====
+    // Event delegation: when sounding changes, update corresponding liter field
+    document.addEventListener('input', function(e) {
+        const target = e.target;
+        
+        // Check if the changed field is a sounding input
+        if (target.matches('[data-item-type="sounding_pagi"]') || 
+            target.matches('[data-item-type="sounding_sore"]')) {
+            
+            const row = target.closest('tr');
+            if (!row) return;
+            
+            // Determine which liter field to update
+            const isSoundingPagi = target.matches('[data-item-type="sounding_pagi"]');
+            const literField = row.querySelector(isSoundingPagi ? 
+                '[data-item-type="liter_pagi"]' : 
+                '[data-item-type="liter_sore"]');
+            
+            if (literField) {
+                // If sounding has value → set liter to 'XXXX', else empty
+                literField.value = target.value.trim() ? 'XXXX' : '';
+            }
+        }
+    });
+    
     console.log('=== DEBUG START ===');
     console.log('reportForm:', reportForm);
     console.log('reportItemRows element:', document.getElementById('reportItemRows'));
