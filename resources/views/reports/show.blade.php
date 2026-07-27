@@ -607,7 +607,7 @@
                     @foreach($groupedItems as $tankCode => $items)
                         @foreach($items as $subIndex => $item)
                             @php
-                                $isAvgRow = ($item->tank->code === 'SPM3' && $item->tank->main_hole === '(D+B)/2');
+                                $isAvgRow = ($item->main_hole_variant === '(DEPAN + BELAKANG) / 2');
                                 if (!$isAvgRow) {
                                     $totFmPagi += $item->fm_pagi ?? 0;
                                     $totFmSore += $item->fm_sore ?? 0;
@@ -621,9 +621,7 @@
                                         'soh'      => 0
                                     ];
                                 }
-                                if ($item->tank->main_hole !== 'BELAKANG' && $item->tank->main_hole === 'DEPAN' && $tankCode === 'SPM3') {
-                                    // Average will be handled or updated later
-                                } elseif ($item->tank->main_hole !== 'BELAKANG' && $item->tank->main_hole !== 'DEPAN') {
+                                if ($item->main_hole_variant !== 'BELAKANG' && $item->main_hole_variant !== 'DEPAN') {
                                     $summaryTanks[$tankCode]['soh'] = $item->liter_sore ?? $item->liter_pagi ?? 0;
                                 }
                             @endphp
@@ -632,7 +630,7 @@
                                     <td rowspan="{{ count($items) }}" style="text-align: center;">{{ $noCounter++ }}</td>
                                     <td rowspan="{{ count($items) }}" style="text-align: center; font-weight: bold;">{{ $tankCode }}</td>
                                 @endif
-                                <td style="text-align: center;">{{ $item->tank->main_hole }}</td>
+                                <td style="text-align: center;">{{ $item->main_hole_variant ?: $item->tank->main_hole }}</td>
                                 
                                 <!-- Sounding Pagi -->
                                 <td class="val-sounding" style="text-align: center;">

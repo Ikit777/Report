@@ -2,16 +2,6 @@
     $savedItems = isset($report) ? $report->items->values() : collect();
     $oldItems = old('items', []);
     $itemRowCount = max(1, $savedItems->count(), count($oldItems));
-    
-    // Group saved items by tank_id to detect 3-row groups for DEPAN+BELAKANG tanks
-    $itemsByTankId = [];
-    foreach ($savedItems as $idx => $item) {
-        $tid = $item->tank_id;
-        if (!isset($itemsByTankId[$tid])) {
-            $itemsByTankId[$tid] = [];
-        }
-        $itemsByTankId[$tid][] = ['item' => $item, 'index' => $idx];
-    }
 @endphp
 <tbody id="reportItemRows">
     @for($i = 0; $i < $itemRowCount; $i++)
@@ -21,49 +11,7 @@
             $selectedTank = $tanks->firstWhere('id', $selectedTankId);
             
             // Determine main_hole display based on main_hole_variant column
-            $mainHoleDisplay = $selectedTank?->main_hole ?? '-';
-            
-            // DEBUG INFO
-            $debugMsg = "Row $i: Tank={$selectedTank?->code}, TankID={$selectedTankId}, ";
-            $debugMsg .= "Variant=" . ($savedItem?->main_hole_variant ?? 'NULL') . ", ";
-            
-            if ($savedItem && $savedItem->main_hole_variant) {
-                // New data: use main_hole_variant from database
-                $mainHoleDisplay = $savedItem->main_hole_variant;
-                $debugMsg .= "Using variant from DB: {$mainHoleDisplay}";
-            } elseif ($savedItem && $selectedTank && $selectedTank->main_hole === '(DEPAN + BELAKANG) / 2') {
-                // Fallback for old data: detect variant based on position in 3-row group
-                $debugMsg .= "Fallback logic: ";
-                if (isset($itemsByTankId[$selectedTankId]) && count($itemsByTankId[$selectedTankId]) === 3) {
-                    // Find position of current item in the group
-                    $positionInGroup = null;
-                    foreach ($itemsByTankId[$selectedTankId] as $pos => $groupItem) {
-                        if ($groupItem['index'] === $i) {
-                            $positionInGroup = $pos;
-                            break;
-                        }
-                    }
-                    
-                    $debugMsg .= "Group has 3 items, position=$positionInGroup, ";
-                    
-                    if ($positionInGroup === 0) {
-                        $mainHoleDisplay = 'DEPAN';
-                    } elseif ($positionInGroup === 1) {
-                        $mainHoleDisplay = 'BELAKANG';
-                    } elseif ($positionInGroup === 2) {
-                        $mainHoleDisplay = '(DEPAN + BELAKANG) / 2';
-                    }
-                    
-                    $debugMsg .= "Set to: {$mainHoleDisplay}";
-                } else {
-                    $debugMsg .= "Group count=" . (isset($itemsByTankId[$selectedTankId]) ? count($itemsByTankId[$selectedTankId]) : '0');
-                }
-            }
-            
-            // Log debug for DEPAN+BELAKANG tanks
-            if ($selectedTank && str_contains($selectedTank->main_hole ?? '', 'DEPAN')) {
-                \Log::info($debugMsg);
-            }
+            $mainHoleDisplay = $savedItem?->main_hole_variant ?: ($selectedTank?->main_hole ?? '-');
         @endphp
         <tr>
             <td class="row-number" style="text-align: center;">{{ $i + 1 }}</td>
@@ -85,16 +33,7 @@
                 </select>
             </td>
             <td class="item-main-hole" style="text-align: center;">
-                @php
-                    // Direct display - no complex logic
-                    if ($savedItem && !empty($savedItem->main_hole_variant)) {
-                        echo $savedItem->main_hole_variant;
-                    } elseif ($selectedTank) {
-                        echo $selectedTank->main_hole;
-                    } else {
-                        echo '-';
-                    }
-                @endphp
+                {{ $mainHoleDisplay }}
             </td>
             <td><input type="number" step="0.01" name="items[{{ $i }}][sounding_pagi]" class="sheet-input" data-item-type="sounding_pagi" value="{{ old("items.{$i}.sounding_pagi", $savedItem?->sounding_pagi) }}"></td>
             <td><input type="text" name="items[{{ $i }}][liter_pagi]" class="sheet-input read-only" data-item-type="liter_pagi" value="{{ old("items.{$i}.liter_pagi", $savedItem && $savedItem->sounding_pagi !== null && Auth::user()->isFuelman() ? 'XXXX' : ($savedItem?->liter_pagi ?? '')) }}" readonly></td>

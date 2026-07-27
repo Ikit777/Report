@@ -86,7 +86,7 @@
                         <th class="section-fm" style="width: 100px;">JUMLAH PAKAI</th>
                     </tr>
                 </thead>
-                @include('reports.partials.report-item-rows-v2')
+                @include('reports.partials.report-item-rows')
                 @if(false)
                 <tbody>
                     @foreach($tanks as $index => $tank)
