@@ -981,6 +981,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create BELAKANG row
         const belakangIndex = reportItemRows.querySelectorAll('tr').length;
         const belakangRow = row.cloneNode(true);
+        
+        // IMPORTANT: Move hidden tank_id input to main-hole cell BEFORE removing tank-code-cell
+        const belakangTankIdInput = belakangRow.querySelector('.tank-id-input');
+        const belakangMainHoleCell = belakangRow.querySelector('.item-main-hole');
+        if (belakangTankIdInput && belakangMainHoleCell) {
+            belakangMainHoleCell.appendChild(belakangTankIdInput);
+        }
+        
         // Remove NO, KODE TANGKI, and ACTION cells from BELAKANG row (already covered by rowspan)
         belakangRow.querySelector('.row-number')?.remove();
         belakangRow.querySelector('.tank-code-cell')?.remove();
