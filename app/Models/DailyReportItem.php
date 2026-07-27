@@ -24,6 +24,29 @@ class DailyReportItem extends Model
         'fm_pakai',
         'keterangan',
     ];
+    
+    public function getMainHoleDisplayAttribute()
+    {
+        // If main_hole_variant is set, use it
+        if ($this->main_hole_variant) {
+            return $this->main_hole_variant;
+        }
+        
+        // Otherwise, check if this is one of multiple rows for same tank in same report
+        if ($this->tank && $this->tank->main_hole === '(DEPAN + BELAKANG) / 2') {
+            // Check position among items with same tank_id
+            $sameTankItems = $this->dailyReport->items->where('tank_id', $this->tank_id);
+            if ($sameTankItems->count() === 3) {
+                $index = $sameTankItems->search(fn($item) => $item->id === $this->id);
+                if ($index === 0) return 'DEPAN';
+                if ($index === 1) return 'BELAKANG';
+                if ($index === 2) return '(DEPAN + BELAKANG) / 2';
+            }
+        }
+        
+        // Default: return tank's main_hole
+        return $this->tank?->main_hole ?? '-';
+    }
 
     public function dailyReport(): BelongsTo
     {

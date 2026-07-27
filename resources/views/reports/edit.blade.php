@@ -1027,6 +1027,87 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     reportItemRows.querySelectorAll('tr').forEach(updateItemMainHole);
     
+    // Define setupAvgCalculation function BEFORE using it
+    const setupAvgCalculation = (depanRow, belakangRow, avgRow, tankId) => {
+        const calculate = (period) => {
+            const depanSounding = parseFloat(depanRow.querySelector(`[data-item-type="sounding_${period}"]`)?.value);
+            const belakangSounding = parseFloat(belakangRow.querySelector(`[data-item-type="sounding_${period}"]`)?.value);
+            const avgInput = avgRow.querySelector(`[data-item-type="sounding_${period}"]`);
+            const avgLiterInput = avgRow.querySelector(`[data-item-type="liter_${period}"]`);
+            
+            if (!isNaN(depanSounding) && !isNaN(belakangSounding)) {
+                const avgSounding = ((depanSounding + belakangSounding) / 2).toFixed(2);
+                avgInput.value = avgSounding;
+                
+                // Fetch liter from calibration based on average sounding
+                avgLiterInput.style.opacity = '0.5';
+                fetch(`/tanks/${tankId}/volume?sounding=${avgSounding}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        avgLiterInput.style.opacity = '1';
+                        if (data.volume !== null && data.volume !== undefined) {
+                            avgLiterInput.value = data.volume;
+                        } else {
+                            avgLiterInput.value = 'XXXX';
+                        }
+                    })
+                    .catch(err => {
+                        avgLiterInput.style.opacity = '1';
+                        avgLiterInput.value = 'XXXX';
+                        console.error('Error fetching volume calibration:', err);
+                    });
+            } else {
+                avgInput.value = '';
+                avgLiterInput.value = '';
+            }
+        };
+        
+        // Listen to DEPAN sounding changes
+        const depanPagiInput = depanRow.querySelector('[data-item-type="sounding_pagi"]');
+        const depanSoreInput = depanRow.querySelector('[data-item-type="sounding_sore"]');
+        if (depanPagiInput) depanPagiInput.addEventListener('input', () => calculate('pagi'));
+        if (depanSoreInput) depanSoreInput.addEventListener('input', () => calculate('sore'));
+        
+        // Listen to BELAKANG sounding changes
+        const belakangPagiInput = belakangRow.querySelector('[data-item-type="sounding_pagi"]');
+        const belakangSoreInput = belakangRow.querySelector('[data-item-type="sounding_sore"]');
+        if (belakangPagiInput) belakangPagiInput.addEventListener('input', () => calculate('pagi'));
+        if (belakangSoreInput) belakangSoreInput.addEventListener('input', () => calculate('sore'));
+        
+        // Calculate immediately if both have values
+        calculate('pagi');
+        calculate('sore');
+    };
+    
+    // Setup calculation for existing (DEPAN + BELAKANG) / 2 rows from database
+    function setupExistingAvgCalculations() {
+        const allRows = Array.from(reportItemRows.querySelectorAll('tr'));
+        
+        for (let i = 0; i < allRows.length; i++) {
+            const row = allRows[i];
+            const tankId = row.querySelector('[data-item-type="tank_id"]')?.value;
+            
+            // Check if this is part of a 3-row group (same tank, 3 consecutive rows)
+            if (i + 2 < allRows.length) {
+                const row2 = allRows[i + 1];
+                const row3 = allRows[i + 2];
+                
+                const tank2Id = row2.querySelector('[data-item-type="tank_id"]')?.value;
+                const tank3Id = row3.querySelector('[data-item-type="tank_id"]')?.value;
+                
+                // If 3 consecutive rows have same tank_id, setup calculation
+                if (tankId && tankId === tank2Id && tankId === tank3Id) {
+                    console.log('Found existing DEPAN+BELAKANG group for tank', tankId);
+                    setupAvgCalculation(row, row2, row3, tankId);
+                    i += 2; // Skip next 2 rows since we processed them
+                }
+            }
+        }
+    }
+    
+    // Call setup for existing rows on page load
+    setupExistingAvgCalculations();
+    
     // Handle (DEPAN + BELAKANG) / 2 tank auto-generation
     const handleAvgMainHoleTank = (row) => {
         const select = row.querySelector('[data-item-type="tank_id"]');
@@ -1163,48 +1244,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setupAvgCalculation(row, belakangRow, avgRow, currentTankId);
     };
     
-    const setupAvgCalculation = (depanRow, belakangRow, avgRow, tankId) => {
-        const calculate = (period) => {
-            const depanSounding = parseFloat(depanRow.querySelector(`[data-item-type="sounding_${period}"]`).value);
-            const belakangSounding = parseFloat(belakangRow.querySelector(`[data-item-type="sounding_${period}"]`).value);
-            const avgInput = avgRow.querySelector(`[data-item-type="sounding_${period}"]`);
-            const avgLiterInput = avgRow.querySelector(`[data-item-type="liter_${period}"]`);
-            
-            if (!isNaN(depanSounding) && !isNaN(belakangSounding)) {
-                const avgSounding = ((depanSounding + belakangSounding) / 2).toFixed(2);
-                avgInput.value = avgSounding;
-                
-                // Fetch liter from calibration based on average sounding
-                avgLiterInput.style.opacity = '0.5';
-                fetch(`/tanks/${tankId}/volume?sounding=${avgSounding}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        avgLiterInput.style.opacity = '1';
-                        if (data.volume !== null && data.volume !== undefined) {
-                            avgLiterInput.value = data.volume;
-                        } else {
-                            avgLiterInput.value = 'XXXX';
-                        }
-                    })
-                    .catch(err => {
-                        avgLiterInput.style.opacity = '1';
-                        avgLiterInput.value = 'XXXX';
-                        console.error('Error fetching volume calibration:', err);
-                    });
-            } else {
-                avgInput.value = '';
-                avgLiterInput.value = '';
-            }
-        };
-        
-        // Listen to DEPAN sounding changes
-        depanRow.querySelector('[data-item-type="sounding_pagi"]').addEventListener('input', () => calculate('pagi'));
-        depanRow.querySelector('[data-item-type="sounding_sore"]').addEventListener('input', () => calculate('sore'));
-        
-        // Listen to BELAKANG sounding changes
-        belakangRow.querySelector('[data-item-type="sounding_pagi"]').addEventListener('input', () => calculate('pagi'));
-        belakangRow.querySelector('[data-item-type="sounding_sore"]').addEventListener('input', () => calculate('sore'));
-    };
     
     const updateItemCalculations = row => {
         const pagi = parseFloat(row.querySelector('[data-item-type="fm_pagi"]').value);

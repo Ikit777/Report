@@ -589,13 +589,18 @@ class ReportController extends Controller
     
     private function saveAvgMainHoleTankItems(DailyReport $report, Tank $tank, array $data)
     {
+        \Log::info("Creating 3 rows for DEPAN+BELAKANG tank", ['tank_code' => $tank->code]);
+        
         // Row 1: DEPAN (use input data as-is)
         $depanItem = $this->createItemFromData($tank, $data);
-        $depanItem->main_hole_variant = 'DEPAN';
+        // Store variant info in a way that can be retrieved later
+        $depanItem->setAttribute('_main_hole_display', 'DEPAN');
         $report->items()->save($depanItem);
+        \Log::info("Saved DEPAN row", ['item_id' => $depanItem->id]);
         
-        // Row 2: BELAKANG (empty data, same tank)
-        $belakangData = array_merge($data, [
+        // Row 2: BELAKANG (keep petugas, clear other fields)
+        $belakangData = [
+            'tank_id' => $tank->id,
             'sounding_pagi' => null,
             'liter_pagi' => null,
             'jam_pagi' => null,
@@ -607,13 +612,16 @@ class ReportController extends Controller
             'fm_pagi' => null,
             'fm_sore' => null,
             'keterangan' => null,
-        ]);
+            'photos' => [],
+        ];
         $belakangItem = $this->createItemFromData($tank, $belakangData);
-        $belakangItem->main_hole_variant = 'BELAKANG';
+        $belakangItem->setAttribute('_main_hole_display', 'BELAKANG');
         $report->items()->save($belakangItem);
+        \Log::info("Saved BELAKANG row", ['item_id' => $belakangItem->id]);
         
-        // Row 3: (DEPAN + BELAKANG) / 2 (empty, will be calculated)
-        $avgData = array_merge($data, [
+        // Row 3: (DEPAN + BELAKANG) / 2 (keep petugas, clear other fields)
+        $avgData = [
+            'tank_id' => $tank->id,
             'sounding_pagi' => null,
             'liter_pagi' => null,
             'jam_pagi' => null,
@@ -625,18 +633,22 @@ class ReportController extends Controller
             'fm_pagi' => null,
             'fm_sore' => null,
             'keterangan' => null,
-        ]);
+            'photos' => [],
+        ];
         $avgItem = $this->createItemFromData($tank, $avgData);
-        $avgItem->main_hole_variant = '(DEPAN + BELAKANG) / 2';
+        $avgItem->setAttribute('_main_hole_display', '(DEPAN + BELAKANG) / 2');
         $report->items()->save($avgItem);
+        \Log::info("Saved (DEPAN + BELAKANG) / 2 row", ['item_id' => $avgItem->id]);
         
         // Save photos for DEPAN row only
-        $context = trim(implode(' — ', array_filter([
-            'Tangki ' . ($tank?->code ?? '-'),
-            'DEPAN',
-            $data['keterangan'] ?? null,
-        ])));
-        $this->saveAttachmentPhotos($report, 'A', $data['attachment_key'] ?? "item-{$tank->id}", $context, $data['photos'] ?? []);
+        if (!empty($data['photos'])) {
+            $context = trim(implode(' — ', array_filter([
+                'Tangki ' . $tank->code,
+                'DEPAN',
+                $data['keterangan'] ?? null,
+            ])));
+            $this->saveAttachmentPhotos($report, 'A', $data['attachment_key'] ?? "item-{$tank->id}", $context, $data['photos']);
+        }
     }
     
     private function saveSingleItem(DailyReport $report, ?Tank $tank, array $data)
