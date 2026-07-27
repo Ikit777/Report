@@ -22,11 +22,18 @@
             
             // Determine main_hole display based on main_hole_variant column
             $mainHoleDisplay = $selectedTank?->main_hole ?? '-';
+            
+            // DEBUG INFO
+            $debugMsg = "Row $i: Tank={$selectedTank?->code}, TankID={$selectedTankId}, ";
+            $debugMsg .= "Variant=" . ($savedItem?->main_hole_variant ?? 'NULL') . ", ";
+            
             if ($savedItem && $savedItem->main_hole_variant) {
                 // New data: use main_hole_variant from database
                 $mainHoleDisplay = $savedItem->main_hole_variant;
+                $debugMsg .= "Using variant from DB: {$mainHoleDisplay}";
             } elseif ($savedItem && $selectedTank && $selectedTank->main_hole === '(DEPAN + BELAKANG) / 2') {
                 // Fallback for old data: detect variant based on position in 3-row group
+                $debugMsg .= "Fallback logic: ";
                 if (isset($itemsByTankId[$selectedTankId]) && count($itemsByTankId[$selectedTankId]) === 3) {
                     // Find position of current item in the group
                     $positionInGroup = null;
@@ -37,6 +44,8 @@
                         }
                     }
                     
+                    $debugMsg .= "Group has 3 items, position=$positionInGroup, ";
+                    
                     if ($positionInGroup === 0) {
                         $mainHoleDisplay = 'DEPAN';
                     } elseif ($positionInGroup === 1) {
@@ -44,7 +53,16 @@
                     } elseif ($positionInGroup === 2) {
                         $mainHoleDisplay = '(DEPAN + BELAKANG) / 2';
                     }
+                    
+                    $debugMsg .= "Set to: {$mainHoleDisplay}";
+                } else {
+                    $debugMsg .= "Group count=" . (isset($itemsByTankId[$selectedTankId]) ? count($itemsByTankId[$selectedTankId]) : '0');
                 }
+            }
+            
+            // Log debug for DEPAN+BELAKANG tanks
+            if ($selectedTank && str_contains($selectedTank->main_hole ?? '', 'DEPAN')) {
+                \Log::info($debugMsg);
             }
         @endphp
         <tr>
