@@ -591,11 +591,12 @@ class ReportController extends Controller
     {
         \Log::info("Creating 3 rows for DEPAN+BELAKANG tank", ['tank_code' => $tank->code]);
         
-        // Row 1: DEPAN (use input data as-is)
-        $depanItem = $this->createItemFromData($tank, $data);
-        $depanItem->main_hole_variant = 'DEPAN';
+        // Row 1: DEPAN (use input data as-is, prepend keterangan with variant marker)
+        $depanKeterangan = '[DEPAN]' . ($data['keterangan'] ? ' ' . $data['keterangan'] : '');
+        $depanData = array_merge($data, ['keterangan' => $depanKeterangan]);
+        $depanItem = $this->createItemFromData($tank, $depanData);
         $report->items()->save($depanItem);
-        \Log::info("Saved DEPAN row", ['item_id' => $depanItem->id]);
+        \Log::info("Saved DEPAN row", ['item_id' => $depanItem->id, 'keterangan' => $depanKeterangan]);
         
         // Row 2: BELAKANG (keep petugas, clear other fields)
         $belakangData = [
@@ -610,11 +611,10 @@ class ReportController extends Controller
             'petugas_sore' => $data['petugas_sore'] ?? null,
             'fm_pagi' => null,
             'fm_sore' => null,
-            'keterangan' => null,
+            'keterangan' => '[BELAKANG]',
             'photos' => [],
         ];
         $belakangItem = $this->createItemFromData($tank, $belakangData);
-        $belakangItem->main_hole_variant = 'BELAKANG';
         $report->items()->save($belakangItem);
         \Log::info("Saved BELAKANG row", ['item_id' => $belakangItem->id]);
         
@@ -631,11 +631,10 @@ class ReportController extends Controller
             'petugas_sore' => $data['petugas_sore'] ?? null,
             'fm_pagi' => null,
             'fm_sore' => null,
-            'keterangan' => null,
+            'keterangan' => '[(DEPAN + BELAKANG) / 2]',
             'photos' => [],
         ];
         $avgItem = $this->createItemFromData($tank, $avgData);
-        $avgItem->main_hole_variant = '(DEPAN + BELAKANG) / 2';
         $report->items()->save($avgItem);
         \Log::info("Saved (DEPAN + BELAKANG) / 2 row", ['item_id' => $avgItem->id]);
         

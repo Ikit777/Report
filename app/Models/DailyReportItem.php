@@ -27,15 +27,14 @@ class DailyReportItem extends Model
     
     public function getMainHoleDisplayAttribute()
     {
-        // If main_hole_variant is set, use it
-        if ($this->main_hole_variant) {
-            return $this->main_hole_variant;
+        // Extract variant from keterangan if it starts with [variant]
+        if ($this->keterangan && preg_match('/^\[(DEPAN|BELAKANG|\(DEPAN \+ BELAKANG\) \/ 2)\]/', $this->keterangan, $matches)) {
+            return $matches[1];
         }
         
-        // Otherwise, check if this is one of multiple rows for same tank in same report
-        if ($this->tank && $this->tank->main_hole === '(DEPAN + BELAKANG) / 2') {
-            // Check position among items with same tank_id
-            $sameTankItems = $this->dailyReport->items->where('tank_id', $this->tank_id);
+        // Check if this is one of multiple rows for same tank in same report
+        if ($this->tank && $this->tank->main_hole === '(DEPAN + BELAKANG) / 2' && $this->dailyReport) {
+            $sameTankItems = $this->dailyReport->items->where('tank_id', $this->tank_id)->values();
             if ($sameTankItems->count() === 3) {
                 $index = $sameTankItems->search(fn($item) => $item->id === $this->id);
                 if ($index === 0) return 'DEPAN';
@@ -46,6 +45,15 @@ class DailyReportItem extends Model
         
         // Default: return tank's main_hole
         return $this->tank?->main_hole ?? '-';
+    }
+    
+    public function getKeteranganDisplayAttribute()
+    {
+        // Remove [variant] prefix from keterangan for display
+        if ($this->keterangan && preg_match('/^\[(DEPAN|BELAKANG|\(DEPAN \+ BELAKANG\) \/ 2)\]\s*(.*)$/', $this->keterangan, $matches)) {
+            return $matches[2] ?: null;
+        }
+        return $this->keterangan;
     }
 
     public function dailyReport(): BelongsTo
