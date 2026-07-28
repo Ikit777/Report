@@ -1094,7 +1094,6 @@ class ReportController extends Controller
             ]);
         }
     }
-}
 
     /**
      * Show list of reports where user is a collaborator
@@ -1210,3 +1209,5 @@ class ReportController extends Controller
         
         return back()->with('success', 'Kolaborator berhasil dihapus.');
     }
+
+}
