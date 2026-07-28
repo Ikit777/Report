@@ -35,6 +35,7 @@ class CreateAdminUser extends Command
 
         // Get input
         $name = $this->ask('Enter full name');
+        $username = $this->ask('Enter username (letters, numbers, underscore only)');
         $email = $this->ask('Enter email address');
         $employeeId = $this->ask('Enter employee ID (optional, press Enter to skip)');
         $password = $this->secret('Enter password (min 6 characters)');
@@ -48,11 +49,13 @@ class CreateAdminUser extends Command
 
         $validator = Validator::make([
             'name' => $name,
+            'username' => $username,
             'email' => $email,
             'employee_id' => $employeeId,
             'password' => $password,
         ], [
             'name' => 'required|string|max:255',
+            'username' => 'required|string|max:50|unique:users,username|regex:/^[a-zA-Z0-9_]+$/',
             'email' => 'required|email|unique:users,email',
             'employee_id' => 'nullable|string|max:50|unique:users,employee_id',
             'password' => 'required|string|min:6',
@@ -69,6 +72,7 @@ class CreateAdminUser extends Command
         // Create user
         $user = User::create([
             'name' => $name,
+            'username' => strtolower($username),
             'email' => $email,
             'employee_id' => $employeeId ?: null,
             'password' => Hash::make($password),
@@ -79,8 +83,8 @@ class CreateAdminUser extends Command
         $this->info('✓ Admin user created successfully!');
         $this->newLine();
         $this->table(
-            ['ID', 'Name', 'Email', 'Employee ID', 'Role'],
-            [[$user->id, $user->name, $user->email, $user->employee_id ?: '-', $user->role]]
+            ['ID', 'Name', 'Username', 'Email', 'Employee ID', 'Role'],
+            [[$user->id, $user->name, $user->username, $user->email, $user->employee_id ?: '-', $user->role]]
         );
 
         return 0;

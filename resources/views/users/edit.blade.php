@@ -32,6 +32,12 @@
         </div>
 
         <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" class="form-control" value="{{ old('username', $user->username) }}" placeholder="Contoh: johndoe (hanya huruf, angka, dan underscore)" required>
+            <small style="color: var(--text-muted); font-size: 0.8rem;">Username hanya boleh berisi huruf, angka, dan underscore (_)</small>
+        </div>
+
+        <div class="form-group">
             <label for="employee_id">ID Pegawai</label>
             <input type="text" name="employee_id" id="employee_id" class="form-control" value="{{ old('employee_id', $user->employee_id) }}" placeholder="Masukkan ID atau Nomor Pegawai (contoh: EMP123)">
         </div>

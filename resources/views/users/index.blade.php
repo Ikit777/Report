@@ -25,6 +25,7 @@
                 <tr>
                     <th style="width: 60px;">No</th>
                     <th>Nama</th>
+                    <th>Username</th>
                     <th>ID Pegawai</th>
                     <th>Email</th>
                     <th>Akses Role</th>
@@ -42,6 +43,9 @@
                                 </div>
                                 <strong>{{ $user->name }}</strong>
                             </div>
+                        </td>
+                        <td>
+                            <code style="background: var(--input-bg); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">{{ $user->username ?? '-' }}</code>
                         </td>
                         <td>{{ $user->employee_id ?? '-' }}</td>
                         <td>{{ $user->email }}</td>

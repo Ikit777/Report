@@ -36,6 +36,7 @@ class UserController extends Controller
         
         $request->validate([
             'name'        => 'required|string|max:255',
+            'username'    => 'required|string|max:50|unique:users,username|regex:/^[a-zA-Z0-9_]+$/',
             'employee_id' => 'nullable|string|max:50|unique:users,employee_id',
             'email'       => 'required|email|unique:users,email',
             'password'    => 'required|string|min:6|confirmed',
@@ -44,6 +45,7 @@ class UserController extends Controller
 
         User::create([
             'name'        => $request->name,
+            'username'    => strtolower($request->username),
             'employee_id' => $request->employee_id,
             'email'       => $request->email,
             'password'    => Hash::make($request->password),
@@ -77,6 +79,7 @@ class UserController extends Controller
 
         $request->validate([
             'name'        => 'required|string|max:255',
+            'username'    => 'required|string|max:50|unique:users,username,' . $user->id . '|regex:/^[a-zA-Z0-9_]+$/',
             'employee_id' => 'nullable|string|max:50|unique:users,employee_id,' . $user->id,
             'email'       => 'required|email|unique:users,email,' . $user->id,
             'role'        => 'required|in:' . implode(',', $allowedRoles),
@@ -85,6 +88,7 @@ class UserController extends Controller
 
         $data = [
             'name'        => $request->name,
+            'username'    => strtolower($request->username),
             'employee_id' => $request->employee_id,
             'email'       => $request->email,
             'role'        => $request->role,

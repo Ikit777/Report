@@ -23,15 +23,19 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        // Email addresses are case-insensitive. Normalizing the value also
-        // prevents accidental leading/trailing spaces from causing a valid
-        // account to be rejected.
-        $credentials['email'] = strtolower(trim($credentials['email']));
+        // Determine if login is email or username
+        $loginValue = strtolower(trim($request->login));
+        $loginField = filter_var($loginValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $loginField => $loginValue,
+            'password' => $request->password,
+        ];
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -40,8 +44,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password yang Anda masukkan salah.',
-        ])->onlyInput('email');
+            'login' => 'Username/Email atau password yang Anda masukkan salah.',
+        ])->onlyInput('login');
     }
 
     public function logout(Request $request)
