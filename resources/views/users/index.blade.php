@@ -68,18 +68,10 @@
                                     $canEdit = true;
                                     $canDelete = true;
                                     
-                                    // SPV restrictions
-                                    if ($currentUser->isSpv()) {
-                                        // Cannot edit Admin
-                                        if ($user->isAdmin()) {
-                                            $canEdit = false;
-                                            $canDelete = false;
-                                        }
-                                        // Can only edit themselves, not other SPV
-                                        if ($user->isSpv() && $user->id !== $currentUser->id) {
-                                            $canEdit = false;
-                                            $canDelete = false;
-                                        }
+                                    // SPV can only edit themselves, not other SPV
+                                    if ($currentUser->isSpv() && $user->isSpv() && $user->id !== $currentUser->id) {
+                                        $canEdit = false;
+                                        $canDelete = false;
                                     }
                                     
                                     // Cannot delete self

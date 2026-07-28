@@ -12,7 +12,15 @@ class UserController extends Controller
     public function index()
     {
         $currentUser = Auth::user();
-        $users = User::orderBy('name')->get();
+        
+        // If SPV, exclude Admin users from list
+        if ($currentUser->isSpv()) {
+            $users = User::where('role', '!=', 'admin')->orderBy('name')->get();
+        } else {
+            // Admin can see all users
+            $users = User::orderBy('name')->get();
+        }
+        
         return view('users.index', compact('users', 'currentUser'));
     }
 
