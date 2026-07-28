@@ -1520,8 +1520,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 // (DEPAN + BELAKANG) / 2 rows: 4 photos each
                 maxPhotos = 4;
             } else {
-                // Normal tank rows: 8 photos
-                maxPhotos = 8;
+                // Normal tank rows: check main_hole from selected tank
+                const tankSelect = row.querySelector('[data-item-type="tank_id"]');
+                const selectedOption = tankSelect?.selectedOptions[0];
+                const mainHole = selectedOption?.dataset.mainHole;
+                
+                // Only DEPAN/BELAKANG variants get 4 photos, everything else gets 8
+                maxPhotos = 8; // default
+                if (mainHole && (mainHole.includes('DEPAN') || mainHole.includes('BELAKANG'))) {
+                    maxPhotos = 4;
+                }
             }
         }
         // Check if it's in transferRows (Section B)
@@ -1563,8 +1571,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 // (DEPAN + BELAKANG) / 2 rows: 4 photos each
                 maxPhotos = 4;
             } else {
-                // Normal tank rows: 8 photos
-                maxPhotos = 8;
+                // Normal tank rows: check main_hole from selected tank
+                const tankSelect = row.querySelector('[data-item-type="tank_id"]');
+                const selectedOption = tankSelect?.selectedOptions[0];
+                const mainHole = selectedOption?.dataset.mainHole;
+                
+                // Only DEPAN/BELAKANG variants get 4 photos, everything else gets 8
+                maxPhotos = 8; // default
+                if (mainHole && (mainHole.includes('DEPAN') || mainHole.includes('BELAKANG'))) {
+                    maxPhotos = 4;
+                }
             }
         }
         // Check if it's in transferRows (Section B)
