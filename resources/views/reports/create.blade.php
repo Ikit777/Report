@@ -514,13 +514,15 @@
                         <tr>
                             <td class="row-number" style="text-align: center;">{{ $i + 1 }}</td>
                             <td>
-                                <input type="text" name="flowmeters[{{ $i }}][unit]" class="sheet-input" value="{{ old("flowmeters.{$i}.unit") }}">
+                                <select name="flowmeters[{{ $i }}][unit]" class="sheet-input flowmeter-unit-select" data-index="{{ $i }}">
+                                    <option value="">Pilih Unit</option>
+                                </select>
                             </td>
                             <td>
-                                <input type="text" name="flowmeters[{{ $i }}][jenis_flowmeter]" class="sheet-input" value="{{ old("flowmeters.{$i}.jenis_flowmeter") }}">
+                                <input type="text" name="flowmeters[{{ $i }}][jenis_flowmeter]" class="sheet-input flowmeter-jenis-input" data-index="{{ $i }}" readonly value="{{ old("flowmeters.{$i}.jenis_flowmeter") }}">
                             </td>
                             <td>
-                                <input type="text" name="flowmeters[{{ $i }}][nomor_seri]" class="sheet-input" value="{{ old("flowmeters.{$i}.nomor_seri") }}">
+                                <input type="text" name="flowmeters[{{ $i }}][nomor_seri]" class="sheet-input flowmeter-nomor-input" data-index="{{ $i }}" readonly value="{{ old("flowmeters.{$i}.nomor_seri") }}">
                             </td>
                             <td>
                                 <input type="text" inputmode="decimal" name="flowmeters[{{ $i }}][awal_pagi]" class="sheet-input" data-index="{{ $i }}" data-flow-type="awal_pagi">
@@ -933,8 +935,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const fmPakaiInput = document.querySelector(`input[data-index="${index}"][data-type="fm_pakai"]`);
 
         if (fmPagiInput && fmSoreInput && fmPakaiInput) {
-            const pagi = parseFloat(fmPagiInput.value);
-            const sore = parseFloat(fmSoreInput.value);
+            // Remove non-numeric characters before parsing
+            const pagiValue = fmPagiInput.value.replace(/[^0-9]/g, '');
+            const soreValue = fmSoreInput.value.replace(/[^0-9]/g, '');
+            
+            const pagi = parseFloat(pagiValue);
+            const sore = parseFloat(soreValue);
 
             if (!isNaN(pagi) && !isNaN(sore)) {
                 const result = sore - pagi;
@@ -944,15 +950,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+    
+    // Remove format on input (only allow numbers)
+    function sanitizeFMInput(input) {
+        const cursorPosition = input.selectionStart;
+        const originalLength = input.value.length;
+        
+        // Remove all non-numeric characters
+        const sanitized = input.value.replace(/[^0-9]/g, '');
+        
+        if (input.value !== sanitized) {
+            input.value = sanitized;
+            
+            // Restore cursor position
+            const newPosition = cursorPosition - (originalLength - sanitized.length);
+            input.setSelectionRange(newPosition, newPosition);
+        }
+    }
 
     fmPagiInputs.forEach(input => {
         input.addEventListener('input', function() {
+            sanitizeFMInput(this);
             calculateFMPakai(this.dataset.index);
         });
     });
 
     fmSoreInputs.forEach(input => {
         input.addEventListener('input', function() {
+            sanitizeFMInput(this);
             calculateFMPakai(this.dataset.index);
         });
     });
@@ -1577,15 +1602,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="row-number" style="text-align: center;">${index + 1}</td>
-            <td><input type="text" name="flowmeters[${index}][unit]" class="sheet-input"></td>
-            <td><input type="text" name="flowmeters[${index}][jenis_flowmeter]" class="sheet-input"></td>
-            <td><input type="text" name="flowmeters[${index}][nomor_seri]" class="sheet-input"></td>
+            <td>
+                <select name="flowmeters[${index}][unit]" class="sheet-input flowmeter-unit-select" data-index="${index}">
+                    <option value="">Pilih Unit</option>
+                </select>
+            </td>
+            <td><input type="text" name="flowmeters[${index}][jenis_flowmeter]" class="sheet-input flowmeter-jenis-input" data-index="${index}" readonly></td>
+            <td><input type="text" name="flowmeters[${index}][nomor_seri]" class="sheet-input flowmeter-nomor-input" data-index="${index}" readonly></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][awal_pagi]" class="sheet-input" data-index="${index}" data-flow-type="awal_pagi"></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][akhir_sore]" class="sheet-input" data-index="${index}" data-flow-type="akhir_sore"></td>
             <td><input type="number" step="1" name="flowmeters[${index}][jumlah_pakai]" class="sheet-input read-only" data-index="${index}" data-flow-type="jumlah_pakai" readonly></td>
             <td class="row-action" style="text-align: center;"></td>`;
         flowmeterRows.appendChild(row);
         refreshDynamicRows(flowmeterRows, 'flowmeters');
+        
+        // Load flowmeters for the new row if site is selected
+        loadFlowmetersForRow(row);
     });
 
     const syncSelectedPhotos = input => {
@@ -1818,6 +1850,113 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.rata-input').forEach(input => input.addEventListener('input', updateKapasitasWidget));
 
     updateKapasitasWidget();
+    
+    // ===== FLOWMETER DROPDOWN & AUTO-FILL =====
+    let flowmetersData = []; // Store flowmeters data
+    
+    // Function to load flowmeters when site is selected
+    function loadFlowmetersForSite(siteId) {
+        if (!siteId) {
+            // Clear all flowmeter dropdowns
+            document.querySelectorAll('.flowmeter-unit-select').forEach(select => {
+                select.innerHTML = '<option value="">Pilih Unit</option>';
+            });
+            flowmetersData = [];
+            return;
+        }
+        
+        fetch(`/flowmeters/site/${siteId}`)
+            .then(response => response.json())
+            .then(data => {
+                flowmetersData = data;
+                
+                // Update all flowmeter dropdowns
+                document.querySelectorAll('.flowmeter-unit-select').forEach(select => {
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Pilih Unit</option>';
+                    
+                    data.forEach(flowmeter => {
+                        const option = document.createElement('option');
+                        option.value = flowmeter.unit;
+                        option.textContent = flowmeter.unit;
+                        option.dataset.flowmeterId = flowmeter.id;
+                        option.dataset.jenis = flowmeter.jenis;
+                        option.dataset.nomorSeri = flowmeter.nomor_seri;
+                        select.appendChild(option);
+                    });
+                    
+                    // Restore previous selection if exists
+                    if (currentValue) {
+                        select.value = currentValue;
+                    }
+                });
+            })
+            .catch(err => {
+                console.error('Error loading flowmeters:', err);
+            });
+    }
+    
+    // Function to load flowmeters for a specific row
+    function loadFlowmetersForRow(row) {
+        const siteId = siteSelect?.value;
+        if (!siteId) return;
+        
+        const select = row.querySelector('.flowmeter-unit-select');
+        if (!select) return;
+        
+        if (flowmetersData.length > 0) {
+            // Use cached data
+            select.innerHTML = '<option value="">Pilih Unit</option>';
+            flowmetersData.forEach(flowmeter => {
+                const option = document.createElement('option');
+                option.value = flowmeter.unit;
+                option.textContent = flowmeter.unit;
+                option.dataset.flowmeterId = flowmeter.id;
+                option.dataset.jenis = flowmeter.jenis;
+                option.dataset.nomorSeri = flowmeter.nomor_seri;
+                select.appendChild(option);
+            });
+        } else {
+            // Load from server
+            loadFlowmetersForSite(siteId);
+        }
+    }
+    
+    // Load flowmeters when site changes
+    if (siteSelect) {
+        siteSelect.addEventListener('change', function() {
+            loadFlowmetersForSite(this.value);
+        });
+        
+        // Load on page load if site is already selected
+        if (siteSelect.value) {
+            loadFlowmetersForSite(siteSelect.value);
+        }
+    }
+    
+    // Auto-fill jenis and nomor_seri when unit is selected
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('.flowmeter-unit-select')) {
+            const select = e.target;
+            const selectedOption = select.selectedOptions[0];
+            const index = select.dataset.index;
+            
+            const jenisInput = document.querySelector(`.flowmeter-jenis-input[data-index="${index}"]`);
+            const nomorInput = document.querySelector(`.flowmeter-nomor-input[data-index="${index}"]`);
+            
+            if (selectedOption && selectedOption.value) {
+                // Fill from selected option's dataset
+                if (jenisInput) jenisInput.value = selectedOption.dataset.jenis || '';
+                if (nomorInput) nomorInput.value = selectedOption.dataset.nomorSeri || '';
+            } else {
+                // Clear fields if "Pilih Unit" is selected
+                if (jenisInput) jenisInput.value = '';
+                if (nomorInput) nomorInput.value = '';
+            }
+        }
+    });
+    
+    // ===== END FLOWMETER AUTO-FILL =====
     
     // ===== Custom Confirmation Dialog =====
     window.showConfirmDialog = function(message) {
