@@ -1542,6 +1542,16 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('addReportItemRow').addEventListener('click', () => {
         const index = reportItemRows.querySelectorAll('tr').length;
         const row = (reportItemRows.querySelector('tr') || rowTemplates.get(reportItemRows)).cloneNode(true);
+        
+        // Remove ALL rowspan attributes to prevent layout issues
+        row.querySelectorAll('[rowspan]').forEach(cell => {
+            cell.removeAttribute('rowspan');
+            cell.style.verticalAlign = '';
+        });
+        
+        // Remove avgType dataset if exists
+        delete row.dataset.avgType;
+        
         row.querySelector('td').textContent = index + 1;
         row.querySelectorAll('input, select').forEach(field => {
             field.name = field.name.replace(/items\[\d+\]/, `items[${index}]`);
@@ -1558,6 +1568,45 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelector('[data-photo-selected]').replaceChildren();
         row.querySelectorAll('.saved-photo-count, .saved-photo-list').forEach(element => element.remove());
         row.querySelector('input[name$="[attachment_key]"]')?.remove();
+        
+        // Ensure all standard cells exist (in case cloned from 3-row group)
+        if (!row.querySelector('.row-number')) {
+            const noCell = document.createElement('td');
+            noCell.className = 'row-number';
+            noCell.style.textAlign = 'center';
+            noCell.textContent = index + 1;
+            row.insertBefore(noCell, row.firstChild);
+        }
+        if (!row.querySelector('.tank-code-cell')) {
+            const tankCell = document.createElement('td');
+            tankCell.className = 'tank-code-cell';
+            row.insertBefore(tankCell, row.children[1]);
+        }
+        if (!row.querySelector('.row-action')) {
+            const actionCell = document.createElement('td');
+            actionCell.className = 'row-action';
+            actionCell.style.textAlign = 'center';
+            actionCell.innerHTML = '<button type="button" class="row-remove-button" data-remove-row title="Hapus baris" aria-label="Hapus baris"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"></path></svg></button>';
+            row.appendChild(actionCell);
+        }
+        
+        // Reset photo upload button visibility and description
+        const photoCell = row.querySelector('.photo-upload-cell');
+        if (photoCell) {
+            const uploadButton = photoCell.querySelector('.photo-upload-button');
+            if (uploadButton) {
+                uploadButton.hidden = false;
+                // Remove old photo limit description
+                const oldDesc = photoCell.querySelector('div[style*="font-size: 0.75rem"]');
+                if (oldDesc) oldDesc.remove();
+                // Add default description (will be updated when tank is selected)
+                const desc = document.createElement('div');
+                desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-top: 4px;';
+                desc.textContent = 'Maks. 8 foto';
+                uploadButton.after(desc);
+            }
+        }
+        
         row.querySelector('[data-item-type="tank_id"]').selectedIndex = 0;
         updateItemMainHole(row);
         reportItemRows.appendChild(row);
