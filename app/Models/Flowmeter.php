@@ -5,13 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Site extends Model
+class Flowmeter extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'code',
-        'name',
+        'site_id',
+        'unit',
+        'jenis',
+        'nomor_seri',
         'is_active',
     ];
 
@@ -19,13 +21,11 @@ class Site extends Model
         'is_active' => 'boolean',
     ];
 
-    public function reports()
+    /**
+     * Relasi ke Site
+     */
+    public function site()
     {
-        return $this->hasMany(DailyReport::class);
-    }
-
-    public function flowmeters()
-    {
-        return $this->hasMany(Flowmeter::class);
+        return $this->belongsTo(Site::class);
     }
 }

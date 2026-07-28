@@ -699,13 +699,46 @@ body.dark-mode .brand-logo {
     font-weight: 700;
     border-radius: 9999px;
     text-transform: uppercase;
+    white-space: nowrap;
+    width: auto;
+    max-width: fit-content;
 }
 
-.badge-draft { background-color: var(--border-color); color: var(--text-secondary); }
-.badge-submitted { background-color: var(--info-light); color: #1e3a8a; }
-.badge-verified { background-color: rgba(99, 102, 241, 0.15); color: #3730a3; }
-.badge-approved { background-color: var(--success-light); color: #065f46; }
-.badge-rejected { background-color: var(--danger-light); color: #991b1b; }
+.badge-draft { 
+    background-color: var(--border-color); 
+    color: var(--text-secondary); 
+    display: inline-flex;
+    width: auto;
+    max-width: fit-content;
+}
+.badge-submitted { 
+    background-color: var(--info-light); 
+    color: #1e3a8a; 
+    display: inline-flex;
+    width: auto;
+    max-width: fit-content;
+}
+.badge-verified { 
+    background-color: rgba(99, 102, 241, 0.15); 
+    color: #3730a3; 
+    display: inline-flex;
+    width: auto;
+    max-width: fit-content;
+}
+.badge-approved { 
+    background-color: var(--success-light); 
+    color: #065f46; 
+    display: inline-flex;
+    width: auto;
+    max-width: fit-content;
+}
+.badge-rejected { 
+    background-color: var(--danger-light); 
+    color: #991b1b; 
+    display: inline-flex;
+    width: auto;
+    max-width: fit-content;
+}
 
 /* Interactive soundings sheet styling (Excel replica) */
 .report-sheet-container {

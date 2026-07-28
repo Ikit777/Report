@@ -54,7 +54,8 @@ class ReportController extends Controller
         // Search filter - search in date, fuelman name, gl name, spv name
         if ($search) {
             $query->where(function($q) use ($search) {
-                $q->whereDate('date', 'like', "%{$search}%")
+                // Cast date to string for LIKE comparison in PostgreSQL
+                $q->whereRaw("to_char(date, 'YYYY-MM-DD') LIKE ?", ["%{$search}%"])
                   ->orWhereHas('fuelman', function($q) use ($search) {
                       $q->where('name', 'like', "%{$search}%");
                   })

@@ -197,6 +197,15 @@
                         <span>Kelola Site</span>
                     </a>
                 </li>
+                <li class="nav-item {{ Route::is('flowmeters.index') || Route::is('flowmeters.create') || Route::is('flowmeters.edit') ? 'active' : '' }}">
+                    <a href="{{ route('flowmeters.index') }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Kelola Flowmeter</span>
+                    </a>
+                </li>
                 <li class="nav-item {{ Route::is('users.index') ? 'active' : '' }}">
                     <a href="{{ route('users.index') }}">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

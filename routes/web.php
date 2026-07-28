@@ -156,4 +156,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/sites/{id}/edit', [\App\Http\Controllers\SiteController::class, 'edit'])->name('sites.edit')->middleware('role:spv,admin');
     Route::put('/sites/{id}', [\App\Http\Controllers\SiteController::class, 'update'])->name('sites.update')->middleware('role:spv,admin');
     Route::delete('/sites/{id}', [\App\Http\Controllers\SiteController::class, 'destroy'])->name('sites.destroy')->middleware('role:spv,admin');
+    
+    // Flowmeters
+    Route::get('/flowmeters', [\App\Http\Controllers\FlowmeterController::class, 'index'])->name('flowmeters.index')->middleware('role:spv,admin');
+    Route::get('/flowmeters/create', [\App\Http\Controllers\FlowmeterController::class, 'create'])->name('flowmeters.create')->middleware('role:spv,admin');
+    Route::post('/flowmeters', [\App\Http\Controllers\FlowmeterController::class, 'store'])->name('flowmeters.store')->middleware('role:spv,admin');
+    Route::get('/flowmeters/{id}/edit', [\App\Http\Controllers\FlowmeterController::class, 'edit'])->name('flowmeters.edit')->middleware('role:spv,admin');
+    Route::put('/flowmeters/{id}', [\App\Http\Controllers\FlowmeterController::class, 'update'])->name('flowmeters.update')->middleware('role:spv,admin');
+    Route::delete('/flowmeters/{id}', [\App\Http\Controllers\FlowmeterController::class, 'destroy'])->name('flowmeters.destroy')->middleware('role:spv,admin');
+    Route::get('/flowmeters/site/{siteId}', [\App\Http\Controllers\FlowmeterController::class, 'getBySite'])->name('flowmeters.by-site');
 });
