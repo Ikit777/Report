@@ -134,7 +134,7 @@ class ReportController extends Controller
             'items.*.fm_pagi' => 'nullable|numeric',
             'items.*.fm_sore' => 'nullable|numeric',
             'items.*.keterangan' => 'nullable|string',
-            'items.*.photos' => 'nullable|array|max:2',
+            'items.*.photos' => 'nullable|array',
             'items.*.photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:1024',
             'kapasitas' => 'nullable|array',
             'kapasitas.*.soh' => 'nullable|numeric|min:0',
@@ -158,7 +158,7 @@ class ReportController extends Controller
             'transfers.*.jam_mulai' => 'nullable',
             'transfers.*.jam_selesai' => 'nullable',
             'transfers.*.lama_transfer' => 'nullable|string',
-            'transfers.*.photos' => 'nullable|array|max:2',
+            'transfers.*.photos' => 'nullable|array',
             'transfers.*.photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:1024',
 
             // Flowmeters C validation
@@ -180,6 +180,34 @@ class ReportController extends Controller
             'transfers.*.photos.*.mimes' => 'Format gambar harus: JPG, JPEG, PNG, atau WEBP.',
             'transfers.*.photos.*.max' => 'Ukuran gambar maksimal 1MB per file.',
         ]);
+
+        // Custom validation for photo count based on main_hole type
+        if ($request->items) {
+            foreach ($request->items as $index => $item) {
+                if (!empty($item['tank_id']) && !empty($item['photos'])) {
+                    $tank = \App\Models\Tank::find($item['tank_id']);
+                    if ($tank) {
+                        $maxPhotos = ($tank->main_hole === 'TENGAH') ? 8 : 4;
+                        if (count($item['photos']) > $maxPhotos) {
+                            return back()->withInput()->withErrors([
+                                "items.{$index}.photos" => "Tangki dengan main hole {$tank->main_hole} maksimal {$maxPhotos} foto."
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Custom validation for transfer photos (max 6)
+        if ($request->transfers) {
+            foreach ($request->transfers as $index => $transfer) {
+                if (!empty($transfer['photos']) && count($transfer['photos']) > 6) {
+                    return back()->withInput()->withErrors([
+                        "transfers.{$index}.photos" => "Transfer solar maksimal 6 foto."
+                    ]);
+                }
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -337,7 +365,7 @@ class ReportController extends Controller
             'items.*.fm_pagi' => 'nullable|numeric',
             'items.*.fm_sore' => 'nullable|numeric',
             'items.*.keterangan' => 'nullable|string',
-            'items.*.photos' => 'nullable|array|max:2',
+            'items.*.photos' => 'nullable|array',
             'items.*.photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:1024',
             'delete_attachment_ids' => 'nullable|array',
             'delete_attachment_ids.*' => 'integer',
@@ -363,7 +391,7 @@ class ReportController extends Controller
             'transfers.*.jam_mulai' => 'nullable',
             'transfers.*.jam_selesai' => 'nullable',
             'transfers.*.lama_transfer' => 'nullable|string',
-            'transfers.*.photos' => 'nullable|array|max:2',
+            'transfers.*.photos' => 'nullable|array',
             'transfers.*.photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:1024',
 
             // Flowmeters C validation
@@ -375,6 +403,34 @@ class ReportController extends Controller
             'flowmeters.*.akhir_sore' => 'nullable|numeric',
             'flowmeters.*.jumlah_pakai' => 'nullable|numeric',
         ]);
+
+        // Custom validation for photo count based on main_hole type
+        if ($request->items) {
+            foreach ($request->items as $index => $item) {
+                if (!empty($item['tank_id']) && !empty($item['photos'])) {
+                    $tank = \App\Models\Tank::find($item['tank_id']);
+                    if ($tank) {
+                        $maxPhotos = ($tank->main_hole === 'TENGAH') ? 8 : 4;
+                        if (count($item['photos']) > $maxPhotos) {
+                            return back()->withInput()->withErrors([
+                                "items.{$index}.photos" => "Tangki dengan main hole {$tank->main_hole} maksimal {$maxPhotos} foto."
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Custom validation for transfer photos (max 6)
+        if ($request->transfers) {
+            foreach ($request->transfers as $index => $transfer) {
+                if (!empty($transfer['photos']) && count($transfer['photos']) > 6) {
+                    return back()->withInput()->withErrors([
+                        "transfers.{$index}.photos" => "Transfer solar maksimal 6 foto."
+                    ]);
+                }
+            }
+        }
 
         DB::beginTransaction();
         try {

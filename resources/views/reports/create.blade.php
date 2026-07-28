@@ -1253,6 +1253,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 hiddenTankIdInput.value = event.target.value;
             }
             updateItemMainHole(row);
+            
+            // Update photo limit text based on selected tank's main_hole
+            const select = event.target;
+            const selectedOption = select.selectedOptions[0];
+            const mainHole = selectedOption?.dataset.mainHole;
+            const photoCell = row.querySelector('.photo-upload-cell');
+            if (photoCell && mainHole) {
+                const existingDesc = photoCell.querySelector('div[style*="font-size: 0.75rem"]');
+                let maxPhotos = 4; // default for non-TENGAH tanks
+                if (mainHole === 'TENGAH') {
+                    maxPhotos = 8;
+                }
+                if (existingDesc) {
+                    existingDesc.textContent = `Maks. ${maxPhotos} foto`;
+                } else {
+                    const desc = document.createElement('div');
+                    desc.style.cssText = 'font-size: 0.75rem; color: #6b7280; margin-top: 4px;';
+                    desc.textContent = `Maks. ${maxPhotos} foto`;
+                    const uploadButton = photoCell.querySelector('.photo-upload-button');
+                    if (uploadButton) {
+                        uploadButton.after(desc);
+                    }
+                }
+            }
+            
             handleAvgMainHoleTank(row);
             return;
         }
