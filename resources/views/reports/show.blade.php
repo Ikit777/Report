@@ -22,7 +22,6 @@
     
     .sheet-table td {
         border: 1px solid #94a3b8 !important;
-        font-weight: 500;
     }
     
     /* Bold styling for specific data cells */
@@ -557,8 +556,8 @@
         <form action="{{ route('reports.add-collaborator', $report->id) }}" method="POST">
             @csrf
             <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #93c5fd; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.25rem; align-items: end;">
-                    <div class="form-group" style="margin: 0;">
+                <div style="display: flex; gap: 1.25rem; align-items: flex-end;">
+                    <div class="form-group" style="margin: 0; flex: 1;">
                         <label for="collaborator_id" style="font-weight: 700; margin-bottom: 0.6rem; display: block; color: #1e40af; font-size: 0.95rem;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 0.35rem;">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -566,13 +565,22 @@
                             </svg>
                             Pilih Fuelman Kolaborator
                         </label>
-                        <select name="collaborator_id" id="collaborator_id" class="form-control" required style="font-size: 0.95rem; padding: 0.7rem 1rem; border: 2px solid #bfdbfe; border-radius: 8px;">
-                            <option value="">-- Pilih Fuelman --</option>
-                            @foreach(\App\Models\User::where('role', 'fuelman')->where('id', '!=', Auth::id())->orderBy('name')->get() as $fuelman)
-                                <option value="{{ $fuelman->id }}">{{ $fuelman->name }}</option>
-                            @endforeach
-                        </select>
-                        <small style="color: #3b82f6; margin-top: 0.5rem; display: flex; align-items: flex-start; gap: 0.4rem; line-height: 1.5;">
+                        <div style="display: flex; gap: 1rem;">
+                            <select name="collaborator_id" id="collaborator_id" class="form-control" required style="flex: 1; font-size: 0.95rem; padding: 0.7rem 1rem; border: 2px solid #bfdbfe; border-radius: 8px; height: 46px;">
+                                <option value="">-- Pilih Fuelman --</option>
+                                @foreach(\App\Models\User::where('role', 'fuelman')->where('id', '!=', Auth::id())->orderBy('name')->get() as $fuelman)
+                                    <option value="{{ $fuelman->id }}">{{ $fuelman->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn btn-primary" style="padding: 0 1.6rem; height: 46px; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; flex-shrink: 0;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Tambah Kolaborator
+                            </button>
+                        </div>
+                        <small style="color: #3b82f6; margin-top: 0.75rem; display: flex; align-items: flex-start; gap: 0.4rem; line-height: 1.5;">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -581,13 +589,6 @@
                             <span>Kolaborator dapat melihat dan mengedit laporan ini, tetapi tidak dapat menghapusnya.</span>
                         </small>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.6rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Tambah Kolaborator
-                    </button>
                 </div>
             </div>
         </form>
