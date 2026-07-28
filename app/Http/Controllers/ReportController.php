@@ -961,7 +961,7 @@ class ReportController extends Controller
         }
     }
 
-    /** Add photos to an attachment set, up to the two-photo limit. */
+    /** Save photos for an attachment set (no limit - validated at request level). */
     private function saveAttachmentPhotos(DailyReport $report, string $section, string $attachmentKey, string $context, array $files): void
     {
         $photos = array_values(array_filter($files, fn ($file) => $file instanceof UploadedFile));
@@ -969,14 +969,8 @@ class ReportController extends Controller
             return;
         }
 
-        $existing = $report->attachments()
-            ->where('section', $section)
-            ->where('attachment_key', $attachmentKey)
-            ->get();
-
-        $availableSlots = max(0, 2 - $existing->count());
-
-        foreach (array_slice($photos, 0, $availableSlots) as $photo) {
+        // No limit here - already validated at request level based on tank type
+        foreach ($photos as $photo) {
             try {
                 $disk = $this->attachmentDisk();
                 \Log::info("Attempting to upload photo", [
