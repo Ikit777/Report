@@ -1579,6 +1579,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (mainHole && (mainHole.includes('DEPAN') || mainHole.includes('BELAKANG'))) {
                     maxPhotos = 4;
                 }
+                
+                console.log('renderSelectedPhotos:', {
+                    tankId: tankSelect?.value,
+                    mainHole: mainHole,
+                    maxPhotos: maxPhotos,
+                    filesCount: files.length
+                });
             }
         }
         // Check if it's in transferRows (Section B)

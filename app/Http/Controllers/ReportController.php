@@ -664,37 +664,18 @@ class ReportController extends Controller
                 'row_count' => count($items),
             ]);
 
-            // Check if this tank has main_hole "(DEPAN + BELAKANG) / 2"
-            // AND has exactly 3 rows submitted (meaning it's a 3-row group from form)
+            // Check if user submitted all 3 rows for DEPAN+BELAKANG tank
             if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2' && count($items) === 3) {
-                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type with 3 rows from form", [
-                    'item_0_sounding_pagi' => $items[0]['data']['sounding_pagi'] ?? 'null',
-                    'item_0_sounding_sore' => $items[0]['data']['sounding_sore'] ?? 'null',
-                    'item_1_sounding_pagi' => $items[1]['data']['sounding_pagi'] ?? 'null',
-                    'item_1_sounding_sore' => $items[1]['data']['sounding_sore'] ?? 'null',
-                    'item_2_sounding_pagi' => $items[2]['data']['sounding_pagi'] ?? 'null',
-                    'item_2_sounding_sore' => $items[2]['data']['sounding_sore'] ?? 'null',
-                    'full_data_0' => $items[0]['data'],
-                    'full_data_1' => $items[1]['data'],
-                    'full_data_2' => $items[2]['data'],
-                ]);
-                
-                // Set main_hole_variant for each row (DON'T modify keterangan)
-                $items[0]['data']['main_hole_variant'] = 'DEPAN';
-                $items[1]['data']['main_hole_variant'] = 'BELAKANG';
-                $items[2]['data']['main_hole_variant'] = '(DEPAN + BELAKANG) / 2';
-                
-                // Save each row
-                foreach ($items as $item) {
-                    $this->saveSingleItem($report, $tank, $item['data']);
-                }
+                \Log::info("Tank {$tank->code} has 3 rows (DEPAN, BELAKANG, average), saving all with photos separately");
+                $this->saveAvgMainHoleTankItems($report, $tank, $items);
                 continue;
             }
             
-            // Check if user is creating NEW report with this tank type (only 1 row submitted)
+            // Check if user is creating NEW report with this tank type (only 1 row submitted - legacy)
             if ($tank && $tank->main_hole === '(DEPAN + BELAKANG) / 2' && count($items) === 1) {
-                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type, will create 3 rows");
-                $this->saveAvgMainHoleTankItems($report, $tank, $items[0]['data']);
+                \Log::info("Tank {$tank->code} is DEPAN+BELAKANG type, will create 3 rows (legacy mode)");
+                // Legacy mode: create 3 rows from single data (photos only for DEPAN)
+                $this->saveAvgMainHoleTankItemsLegacy($report, $tank, $items[0]['data']);
                 continue;
             }
 
@@ -705,9 +686,75 @@ class ReportController extends Controller
         }
     }
     
-    private function saveAvgMainHoleTankItems(DailyReport $report, Tank $tank, array $data)
+    private function saveAvgMainHoleTankItems(DailyReport $report, Tank $tank, array $groupedItems)
     {
-        \Log::info("Creating 3 rows for DEPAN+BELAKANG tank", ['tank_code' => $tank->code]);
+        \Log::info("Creating 3 rows for DEPAN+BELAKANG tank", ['tank_code' => $tank->code, 'item_count' => count($groupedItems)]);
+        
+        // Expect exactly 3 items: DEPAN, BELAKANG, average
+        // They come in order from frontend
+        $depanData = $groupedItems[0] ?? null;
+        $belakangData = $groupedItems[1] ?? null;
+        $avgData = $groupedItems[2] ?? null;
+        
+        if (!$depanData || !$belakangData || !$avgData) {
+            \Log::warning("Incomplete 3-row group data", ['count' => count($groupedItems)]);
+            // Fallback: save whatever we have
+            foreach ($groupedItems as $item) {
+                $this->saveSingleItem($report, $tank, $item['data']);
+            }
+            return;
+        }
+        
+        // Row 1: DEPAN
+        $depanItem = $this->createItemFromData($tank, array_merge($depanData['data'], ['main_hole_variant' => 'DEPAN']));
+        $report->items()->save($depanItem);
+        \Log::info("Saved DEPAN row", ['item_id' => $depanItem->id]);
+        
+        // Save DEPAN photos
+        if (!empty($depanData['data']['photos'])) {
+            $context = trim(implode(' — ', array_filter([
+                'Tangki ' . $tank->code,
+                'DEPAN',
+                $depanData['data']['keterangan'] ?? null,
+            ])));
+            $this->saveAttachmentPhotos($report, 'A', $depanData['data']['attachment_key'] ?? "item-{$tank->id}-depan", $context, $depanData['data']['photos']);
+        }
+        
+        // Row 2: BELAKANG
+        $belakangItem = $this->createItemFromData($tank, array_merge($belakangData['data'], ['main_hole_variant' => 'BELAKANG']));
+        $report->items()->save($belakangItem);
+        \Log::info("Saved BELAKANG row", ['item_id' => $belakangItem->id]);
+        
+        // Save BELAKANG photos
+        if (!empty($belakangData['data']['photos'])) {
+            $context = trim(implode(' — ', array_filter([
+                'Tangki ' . $tank->code,
+                'BELAKANG',
+                $belakangData['data']['keterangan'] ?? null,
+            ])));
+            $this->saveAttachmentPhotos($report, 'A', $belakangData['data']['attachment_key'] ?? "item-{$tank->id}-belakang", $context, $belakangData['data']['photos']);
+        }
+        
+        // Row 3: (DEPAN + BELAKANG) / 2
+        $avgItem = $this->createItemFromData($tank, array_merge($avgData['data'], ['main_hole_variant' => '(DEPAN + BELAKANG) / 2']));
+        $report->items()->save($avgItem);
+        \Log::info("Saved (DEPAN + BELAKANG) / 2 row", ['item_id' => $avgItem->id]);
+        
+        // Save average photos
+        if (!empty($avgData['data']['photos'])) {
+            $context = trim(implode(' — ', array_filter([
+                'Tangki ' . $tank->code,
+                '(DEPAN + BELAKANG) / 2',
+                $avgData['data']['keterangan'] ?? null,
+            ])));
+            $this->saveAttachmentPhotos($report, 'A', $avgData['data']['attachment_key'] ?? "item-{$tank->id}-avg", $context, $avgData['data']['photos']);
+        }
+    }
+    
+    // Legacy function for backward compatibility (when only 1 row submitted for DEPAN+BELAKANG tank)
+    private function saveAvgMainHoleTankItemsLegacy(DailyReport $report, Tank $tank, array $data)
+    {
+        \Log::info("Creating 3 rows for DEPAN+BELAKANG tank (legacy mode)", ['tank_code' => $tank->code]);
         
         // Row 1: DEPAN (use input data as-is)
         $depanData = array_merge($data, ['main_hole_variant' => 'DEPAN']);
@@ -730,7 +777,6 @@ class ReportController extends Controller
             'fm_pagi' => null,
             'fm_sore' => null,
             'keterangan' => null,
-            'photos' => [],
         ];
         $belakangItem = $this->createItemFromData($tank, $belakangData);
         $report->items()->save($belakangItem);
@@ -751,13 +797,12 @@ class ReportController extends Controller
             'fm_pagi' => null,
             'fm_sore' => null,
             'keterangan' => null,
-            'photos' => [],
         ];
         $avgItem = $this->createItemFromData($tank, $avgData);
         $report->items()->save($avgItem);
         \Log::info("Saved (DEPAN + BELAKANG) / 2 row", ['item_id' => $avgItem->id]);
         
-        // Save photos for DEPAN row only
+        // Save photos for DEPAN row only (legacy behavior)
         if (!empty($data['photos'])) {
             $context = trim(implode(' — ', array_filter([
                 'Tangki ' . $tank->code,
