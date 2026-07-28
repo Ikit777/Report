@@ -118,6 +118,11 @@
         background-color: #f8fafc;
         font-weight: normal !important;
     }
+    
+    /* Exception: bold cells should stay bold even in average rows */
+    .sheet-table tr.average-row td.bold-cell {
+        font-weight: 700 !important;
+    }
 
     .report-stats-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
