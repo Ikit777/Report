@@ -64,8 +64,20 @@ class DashboardController extends Controller
         }
         
         if ($user->isSpv() || $user->isAdmin()) {
-            $stats['pending_approval'] = DailyReport::where('status', 'verified')->count();
-            $stats['approved_by_me'] = DailyReport::where('status', 'approved')->where('spv_id', $user->id)->count();
+            // Different stats for SPV vs Admin
+            if ($user->isSpv()) {
+                // SPV: Show pending approval and approved by me
+                $stats['pending_approval'] = DailyReport::where('status', 'verified')->count();
+                $stats['approved_by_me'] = DailyReport::where('status', 'approved')->where('spv_id', $user->id)->count();
+            } else {
+                // Admin: Show all report statistics (no approval stats)
+                $stats['total_draft'] = DailyReport::where('status', 'draft')->count();
+                $stats['total_submitted'] = DailyReport::where('status', 'submitted')->count();
+                $stats['total_verified'] = DailyReport::where('status', 'verified')->count();
+                $stats['total_approved'] = DailyReport::where('status', 'approved')->count();
+                $stats['total_rejected'] = DailyReport::where('status', 'rejected')->count();
+            }
+            
             $stats['total_reports'] = DailyReport::count();
             
             $recentReports = DailyReport::with(['fuelman', 'gl', 'spv', 'site'])

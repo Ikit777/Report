@@ -76,6 +76,27 @@
             <span class="stat-title">Volume Keluar (FM Pakai)</span>
             <span class="stat-value">{{ number_format($totalUsage, 0, ',', '.') }} L</span>
         </div>
+    @elseif(Auth::user()->isAdmin())
+        <div class="stat-card info">
+            <span class="stat-title">Draft</span>
+            <span class="stat-value">{{ $stats['total_draft'] }}</span>
+        </div>
+        <div class="stat-card warning">
+            <span class="stat-title">Menunggu Verifikasi GL</span>
+            <span class="stat-value">{{ $stats['total_submitted'] }}</span>
+        </div>
+        <div class="stat-card primary">
+            <span class="stat-title">Diverifikasi GL</span>
+            <span class="stat-value">{{ $stats['total_verified'] }}</span>
+        </div>
+        <div class="stat-card success">
+            <span class="stat-title">Disetujui SPV</span>
+            <span class="stat-value">{{ $stats['total_approved'] }}</span>
+        </div>
+        <div class="stat-card danger">
+            <span class="stat-title">Ditolak</span>
+            <span class="stat-value">{{ $stats['total_rejected'] }}</span>
+        </div>
     @endif
 </div>
 

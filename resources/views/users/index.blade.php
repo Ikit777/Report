@@ -64,13 +64,47 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <a href="{{ route('users.edit', $user->id) }}" class="btn-icon btn-icon-edit" title="Ubah">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                    </svg>
-                                </a>
-                                @if($user->id !== Auth::id())
+                                @php
+                                    $canEdit = true;
+                                    $canDelete = true;
+                                    
+                                    // SPV restrictions
+                                    if ($currentUser->isSpv()) {
+                                        // Cannot edit Admin
+                                        if ($user->isAdmin()) {
+                                            $canEdit = false;
+                                            $canDelete = false;
+                                        }
+                                        // Can only edit themselves, not other SPV
+                                        if ($user->isSpv() && $user->id !== $currentUser->id) {
+                                            $canEdit = false;
+                                            $canDelete = false;
+                                        }
+                                    }
+                                    
+                                    // Cannot delete self
+                                    if ($user->id === $currentUser->id) {
+                                        $canDelete = false;
+                                    }
+                                @endphp
+                                
+                                @if($canEdit)
+                                    <a href="{{ route('users.edit', $user->id) }}" class="btn-icon btn-icon-edit" title="Ubah">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <span class="btn-icon" style="opacity: 0.3; cursor: not-allowed;" title="Tidak ada akses">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </span>
+                                @endif
+                                
+                                @if($canDelete)
                                     <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirmDelete(event, this);" style="margin: 0; display: inline-flex;">
                                         @csrf
                                         @method('DELETE')
@@ -83,8 +117,17 @@
                                             </svg>
                                         </button>
                                     </form>
-                                @else
+                                @elseif($user->id === $currentUser->id)
                                     <span style="font-size: 0.75rem; color: var(--text-muted); padding: 6px 8px;">(Anda)</span>
+                                @else
+                                    <span class="btn-icon" style="opacity: 0.3; cursor: not-allowed;" title="Tidak ada akses">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                    </span>
                                 @endif
                             </div>
                         </td>

@@ -54,9 +54,29 @@
                 <option value="group_leader" {{ (old('role', $user->role) === 'group_leader') ? 'selected' : '' }}>Group Leader</option>
                 @if($currentUser->isAdmin())
                     <option value="supervisor" {{ (old('role', $user->role) === 'supervisor') ? 'selected' : '' }}>Supervisor</option>
-                    <option value="admin" {{ (old('role', $user->role) === 'admin') ? 'selected' : '' }}>Admin</option>
+                    @php
+                        // Allow admin option if editing current admin OR no other admin exists
+                        $otherAdminExists = \App\Models\User::where('role', 'admin')->where('id', '!=', $user->id)->exists();
+                        $canBeAdmin = $user->isAdmin() || !$otherAdminExists;
+                    @endphp
+                    @if($canBeAdmin)
+                        <option value="admin" {{ (old('role', $user->role) === 'admin') ? 'selected' : '' }}>Admin</option>
+                    @endif
+                @elseif($currentUser->isSpv())
+                    @if($user->id === $currentUser->id)
+                        {{-- SPV editing themselves can keep their role --}}
+                        <option value="supervisor" {{ (old('role', $user->role) === 'supervisor') ? 'selected' : '' }}>Supervisor</option>
+                    @endif
                 @endif
             </select>
+            @if($currentUser->isAdmin())
+                @php
+                    $otherAdminExists = \App\Models\User::where('role', 'admin')->where('id', '!=', $user->id)->exists();
+                @endphp
+                @if($otherAdminExists && !$user->isAdmin())
+                    <small style="color: var(--text-muted); font-size: 0.8rem;">* Admin sudah ada. Sistem hanya dapat memiliki 1 Admin.</small>
+                @endif
+            @endif
         </div>
 
         <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
