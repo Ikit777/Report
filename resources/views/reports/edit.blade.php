@@ -1264,6 +1264,40 @@ document.addEventListener('DOMContentLoaded', function () {
         
         console.log('handleAvgMainHoleTank called', { mainHole, tankId: select.value });
         
+        // Check if this row is currently part of a 3-row group (has avgType or has rowspan)
+        const isCurrentlyGrouped = row.dataset.avgType || row.querySelector('[rowspan]');
+        
+        // If changing FROM (DEPAN+BELAKANG) TO normal tank
+        if (isCurrentlyGrouped && mainHole !== '(DEPAN + BELAKANG) / 2') {
+            console.log('Reverting 3-row group back to single row');
+            
+            // Remove rowspan from current row
+            row.querySelectorAll('[rowspan]').forEach(cell => {
+                cell.removeAttribute('rowspan');
+                cell.style.verticalAlign = '';
+            });
+            
+            // Remove avgType dataset
+            delete row.dataset.avgType;
+            
+            // Remove next 2 rows if they belong to this group
+            const allRows = Array.from(reportItemRows.querySelectorAll('tr'));
+            const rowIndex = allRows.indexOf(row);
+            const nextRow = allRows[rowIndex + 1];
+            const nextNextRow = allRows[rowIndex + 2];
+            
+            if (nextRow && nextRow.dataset.avgType) {
+                nextRow.remove();
+            }
+            if (nextNextRow && nextNextRow.dataset.avgType) {
+                nextNextRow.remove();
+            }
+            
+            // Refresh row numbers
+            refreshDynamicRows(reportItemRows, 'items');
+            return;
+        }
+        
         // Check if main_hole is "(DEPAN + BELAKANG) / 2"
         if (mainHole !== '(DEPAN + BELAKANG) / 2') {
             console.log('Not a DEPAN+BELAKANG tank, skipping');
@@ -1909,7 +1943,7 @@ document.addEventListener('DOMContentLoaded', function () {
         list.replaceChildren(...existingItems);
         const loadingDiv = document.createElement('div');
         loadingDiv.style.cssText = 'padding: 8px; color: #3b82f6; font-size: 0.85rem;';
-        loadingDiv.textContent = '⏳ Memproses foto...';
+        loadingDiv.textContent = 'Memproses foto...';
         list.appendChild(loadingDiv);
 
         for (const file of newFiles) {

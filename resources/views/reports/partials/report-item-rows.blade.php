@@ -51,9 +51,24 @@
             <td><input type="text" name="items[{{ $i }}][keterangan]" class="sheet-input" value="{{ old("items.{$i}.keterangan", $savedItem?->keterangan) }}"></td>
             <td class="photo-upload-cell">
                 @php
-                    $existingAttachments = $savedItem && isset($report)
-                        ? $report->attachments->where('section', 'A')->whereIn('attachment_key', ["item-{$savedItem->tank_id}", "item-{$savedItem->id}"])
-                        : collect();
+                    if ($savedItem && isset($report)) {
+                        // For DEPAN/BELAKANG/average rows, use specific attachment keys
+                        $attachmentKeys = ["item-{$savedItem->tank_id}", "item-{$savedItem->id}"];
+                        
+                        if ($savedItem->main_hole_variant === 'DEPAN') {
+                            $attachmentKeys[] = "item-{$savedItem->tank_id}-depan";
+                        } elseif ($savedItem->main_hole_variant === 'BELAKANG') {
+                            $attachmentKeys[] = "item-{$savedItem->tank_id}-belakang";
+                        } elseif ($savedItem->main_hole_variant === '(DEPAN + BELAKANG) / 2') {
+                            $attachmentKeys[] = "item-{$savedItem->tank_id}-avg";
+                        }
+                        
+                        $existingAttachments = $report->attachments
+                            ->where('section', 'A')
+                            ->whereIn('attachment_key', $attachmentKeys);
+                    } else {
+                        $existingAttachments = collect();
+                    }
                     
                     // Determine photo limit based on tank main_hole
                     // Only DEPAN/BELAKANG variants get 4 photos, everything else gets 8

@@ -962,6 +962,40 @@ document.addEventListener('DOMContentLoaded', function () {
         const select = row.querySelector('[data-item-type="tank_id"]');
         const mainHole = select.selectedOptions[0]?.dataset.mainHole || '';
         
+        // Check if this row is currently part of a 3-row group (has avgType or has rowspan)
+        const isCurrentlyGrouped = row.dataset.avgType || row.querySelector('[rowspan]');
+        
+        // If changing FROM (DEPAN+BELAKANG) TO normal tank
+        if (isCurrentlyGrouped && mainHole !== '(DEPAN + BELAKANG) / 2') {
+            console.log('Reverting 3-row group back to single row');
+            
+            // Remove rowspan from current row
+            row.querySelectorAll('[rowspan]').forEach(cell => {
+                cell.removeAttribute('rowspan');
+                cell.style.verticalAlign = '';
+            });
+            
+            // Remove avgType dataset
+            delete row.dataset.avgType;
+            
+            // Remove next 2 rows if they belong to this group
+            const allRows = Array.from(reportItemRows.querySelectorAll('tr'));
+            const rowIndex = allRows.indexOf(row);
+            const nextRow = allRows[rowIndex + 1];
+            const nextNextRow = allRows[rowIndex + 2];
+            
+            if (nextRow && nextRow.dataset.avgType) {
+                nextRow.remove();
+            }
+            if (nextNextRow && nextNextRow.dataset.avgType) {
+                nextNextRow.remove();
+            }
+            
+            // Refresh row numbers
+            refreshDynamicRows(reportItemRows, 'items');
+            return;
+        }
+        
         // Check if main_hole is "(DEPAN + BELAKANG) / 2"
         if (mainHole !== '(DEPAN + BELAKANG) / 2') {
             return;
@@ -1650,7 +1684,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Show loading indicator
         const list = cell.querySelector('[data-photo-selected]');
-        list.innerHTML = '<div style="padding: 8px; color: #3b82f6; font-size: 0.85rem;">⏳ Memproses foto...</div>';
+        list.innerHTML = '<div style="padding: 8px; color: #3b82f6; font-size: 0.85rem;">Memproses foto...</div>';
 
         for (const file of newFiles) {
             try {
