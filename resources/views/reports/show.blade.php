@@ -25,6 +25,11 @@
         font-weight: 500;
     }
     
+    /* Bold styling for specific data cells */
+    .sheet-table td.bold-cell {
+        font-weight: 700 !important;
+    }
+    
     /* Blue font color for soundings */
     .val-sounding {
         color: #2563eb !important;
@@ -492,47 +497,53 @@
 <!-- COLLABORATION MANAGEMENT PANEL -->
 @if(Auth::user()->isFuelman() && $report->fuelman_id === Auth::id() && in_array($report->status, ['draft', 'rejected']))
 <div class="card-table-container no-print" style="margin-bottom: 1.5rem;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-        <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Header Section -->
+    <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
         </div>
-        <div>
-            <h2 class="card-title" style="margin: 0;">Kolaborasi Laporan</h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.25rem 0 0;">Tambahkan Fuelman lain untuk berkolaborasi dalam laporan ini (maks. 1 kolaborator)</p>
+        <div style="flex: 1;">
+            <h2 class="card-title" style="margin: 0 0 0.35rem; font-size: 1.25rem; color: #1e293b;">Kolaborasi Laporan</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin: 0; line-height: 1.5;">Tambahkan Fuelman lain untuk berkolaborasi dalam laporan ini (maks. 1 kolaborator)</p>
         </div>
     </div>
     
     @if($report->collaborator_id)
         {{-- Show current collaborator with option to remove --}}
-        <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #86efac; border-radius: 12px; padding: 1.25rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; flex-shrink: 0;">
+        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #86efac; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1.25rem; flex: 1; min-width: 200px;">
+                    <!-- Avatar -->
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.4rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4); border: 3px solid white;">
                         {{ strtoupper(substr($report->collaborator->name, 0, 1)) }}
                     </div>
+                    <!-- Info -->
                     <div>
-                        <div style="font-weight: 700; font-size: 1.05rem; color: #166534; margin-bottom: 0.25rem;">
+                        <div style="font-weight: 700; font-size: 1.1rem; color: #166534; margin-bottom: 0.4rem;">
                             {{ $report->collaborator->name }}
                         </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #15803d;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            <span>Kolaborator Aktif</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="display: inline-flex; align-items: center; gap: 0.4rem; background: #bbf7d0; color: #15803d; font-size: 0.8rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 20px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                Kolaborator Aktif
+                            </span>
                         </div>
                     </div>
                 </div>
-                <form action="{{ route('reports.remove-collaborator', $report->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kolaborator? Mereka tidak akan bisa lagi melihat atau mengedit laporan ini.');">
+                <!-- Remove Button -->
+                <form action="{{ route('reports.remove-collaborator', $report->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kolaborator?\n\nMereka tidak akan bisa lagi melihat atau mengedit laporan ini.');" style="margin: 0;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger" style="padding: 0.65rem 1.25rem;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button type="submit" class="btn btn-danger" style="padding: 0.7rem 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
@@ -545,20 +556,33 @@
         {{-- Form to add collaborator --}}
         <form action="{{ route('reports.add-collaborator', $report->id) }}" method="POST">
             @csrf
-            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; border-radius: 12px; padding: 1.25rem;">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: end;">
+            <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #93c5fd; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.25rem; align-items: end;">
                     <div class="form-group" style="margin: 0;">
-                        <label for="collaborator_id" style="font-weight: 600; margin-bottom: 0.5rem; display: block; color: #1e40af;">Pilih Fuelman Kolaborator</label>
-                        <select name="collaborator_id" id="collaborator_id" class="form-control" required>
+                        <label for="collaborator_id" style="font-weight: 700; margin-bottom: 0.6rem; display: block; color: #1e40af; font-size: 0.95rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 0.35rem;">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Pilih Fuelman Kolaborator
+                        </label>
+                        <select name="collaborator_id" id="collaborator_id" class="form-control" required style="font-size: 0.95rem; padding: 0.7rem 1rem; border: 2px solid #bfdbfe; border-radius: 8px;">
                             <option value="">-- Pilih Fuelman --</option>
                             @foreach(\App\Models\User::where('role', 'fuelman')->where('id', '!=', Auth::id())->orderBy('name')->get() as $fuelman)
                                 <option value="{{ $fuelman->id }}">{{ $fuelman->name }}</option>
                             @endforeach
                         </select>
-                        <small style="color: #3b82f6; margin-top: 0.25rem; display: block;">Kolaborator dapat melihat dan mengedit laporan ini, tetapi tidak dapat menghapusnya.</small>
+                        <small style="color: #3b82f6; margin-top: 0.5rem; display: flex; align-items: flex-start; gap: 0.4rem; line-height: 1.5;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span>Kolaborator dapat melihat dan mengedit laporan ini, tetapi tidak dapat menghapusnya.</span>
+                        </small>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; white-space: nowrap;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.6rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
@@ -710,15 +734,15 @@
                             <tr class="{{ $isAvgRow ? 'average-row' : '' }}">
                                 @if($subIndex === 0)
                                     <td rowspan="{{ count($items) }}" style="text-align: center;">{{ $noCounter++ }}</td>
-                                    <td rowspan="{{ count($items) }}" style="text-align: center; font-weight: bold;">{{ $tankCode }}</td>
+                                    <td rowspan="{{ count($items) }}" class="bold-cell" style="text-align: center;">{{ $tankCode }}</td>
                                 @endif
-                                <td style="text-align: center;">{{ $item->main_hole_variant ?: $item->tank->main_hole }}</td>
+                                <td class="bold-cell" style="text-align: center;">{{ $item->main_hole_variant ?: $item->tank->main_hole }}</td>
                                 
                                 <!-- Sounding Pagi -->
                                 <td class="val-sounding" style="text-align: center;">
                                     {{ $item->sounding_pagi !== null ? number_format($item->sounding_pagi, 1, ',', '.') : '' }}
                                 </td>
-                                <td class="val-liter" style="text-align: right; padding-right: 8px;">
+                                <td class="val-liter bold-cell" style="text-align: right; padding-right: 8px;">
                                     @if($item->sounding_pagi === null)
                                         
                                     @elseif(Auth::user()->isFuelman())
@@ -734,13 +758,13 @@
                                 <td style="text-align: center;">
                                     {{ $item->jam_pagi ? \Carbon\Carbon::parse($item->jam_pagi)->format('H:i') : '' }}
                                 </td>
-                                <td style="text-align: center; text-transform: uppercase;">{{ $item->petugas_pagi }}</td>
+                                <td class="bold-cell" style="text-align: center; text-transform: uppercase;">{{ $item->petugas_pagi }}</td>
                                 
                                 <!-- Sounding Sore -->
                                 <td class="val-sounding" style="text-align: center;">
                                     {{ $item->sounding_sore !== null ? number_format($item->sounding_sore, 1, ',', '.') : '' }}
                                 </td>
-                                <td class="val-liter" style="text-align: right; padding-right: 8px;">
+                                <td class="val-liter bold-cell" style="text-align: right; padding-right: 8px;">
                                     @if($item->sounding_sore === null)
                                         
                                     @elseif(Auth::user()->isFuelman())
@@ -756,7 +780,7 @@
                                 <td style="text-align: center;">
                                     {{ $item->jam_sore ? \Carbon\Carbon::parse($item->jam_sore)->format('H:i') : '' }}
                                 </td>
-                                <td style="text-align: center; text-transform: uppercase;">{{ $item->petugas_sore }}</td>
+                                <td class="bold-cell" style="text-align: center; text-transform: uppercase;">{{ $item->petugas_sore }}</td>
                                 
                                 <!-- Angka FM Kecil -->
                                 <td style="text-align: right; padding-right: 8px;">
@@ -765,7 +789,7 @@
                                 <td style="text-align: right; padding-right: 8px;">
                                     {{ $item->fm_sore !== null ? $item->fm_sore : '' }}
                                 </td>
-                                <td class="val-pakai" style="text-align: right; padding-right: 8px;">
+                                <td class="val-pakai bold-cell" style="text-align: right; padding-right: 8px;">
                                         @if($item->fm_pagi !== null && $item->fm_sore !== null)
                                             {{ $item->fm_pakai !== null ? number_format($item->fm_pakai, 0, ',', '.') : '0' }}
                                         @endif
@@ -942,14 +966,14 @@
                 @foreach($report->transfers as $index => $transfer)
                     <tr>
                         <td style="text-align: center;">{{ $index + 1 }}</td>
-                        <td style="text-align: center; font-weight: bold;">{{ $transfer->dari_tangki }}</td>
-                        <td style="text-align: center; font-weight: bold;">{{ $transfer->ke_tangki }}</td>
+                        <td class="bold-cell" style="text-align: center;">{{ $transfer->dari_tangki }}</td>
+                        <td class="bold-cell" style="text-align: center;">{{ $transfer->ke_tangki }}</td>
                         
                         <!-- SPM -->
                         <td style="text-align: center;">{{ $transfer->spm_awal !== null ? number_format($transfer->spm_awal, 1, ',', '.') : '' }}</td>
                         <td style="text-align: center;">{{ $transfer->spm_akhir !== null ? number_format($transfer->spm_akhir, 1, ',', '.') : '' }}</td>
-                        <td style="text-align: center; font-weight: 500;">{{ $transfer->spm_hasil !== null ? number_format($transfer->spm_hasil, 1, ',', '.') : '' }}</td>
-                        <td class="val-liter" style="text-align: right; padding-right: 8px;">
+                        <td class="bold-cell" style="text-align: center;">{{ $transfer->spm_hasil !== null ? number_format($transfer->spm_hasil, 1, ',', '.') : '' }}</td>
+                        <td class="val-liter bold-cell" style="text-align: right; padding-right: 8px;">
                             @if(Auth::user()->isFuelman())
                                 XXXX
                             @elseif($transfer->spm_hasil === null)
@@ -962,8 +986,8 @@
                         <!-- FT -->
                         <td style="text-align: center;">{{ $transfer->ft_awal !== null ? number_format($transfer->ft_awal, 1, ',', '.') : '' }}</td>
                         <td style="text-align: center;">{{ $transfer->ft_akhir !== null ? number_format($transfer->ft_akhir, 1, ',', '.') : '' }}</td>
-                        <td style="text-align: center; font-weight: 500;">{{ $transfer->ft_hasil !== null ? number_format($transfer->ft_hasil, 1, ',', '.') : '' }}</td>
-                        <td class="val-liter" style="text-align: right; padding-right: 8px;">
+                        <td class="bold-cell" style="text-align: center;">{{ $transfer->ft_hasil !== null ? number_format($transfer->ft_hasil, 1, ',', '.') : '' }}</td>
+                        <td class="val-liter bold-cell" style="text-align: right; padding-right: 8px;">
                             @if(Auth::user()->isFuelman())
                                 XXXX
                             @elseif($transfer->ft_hasil === null)
@@ -976,7 +1000,7 @@
                         <!-- FM -->
                         <td style="text-align: right; padding-right: 8px;">{{ $transfer->fm_awal !== null ? $transfer->fm_awal : '' }}</td>
                         <td style="text-align: right; padding-right: 8px;">{{ $transfer->fm_akhir !== null ? $transfer->fm_akhir : '' }}</td>
-                        <td class="val-pakai" style="text-align: right; padding-right: 8px; font-weight: bold;">
+                        <td class="val-pakai bold-cell" style="text-align: right; padding-right: 8px;">
                             {{ $transfer->fm_jumlah !== null ? number_format($transfer->fm_jumlah, 0, ',', '.') : '' }}
                         </td>
                         
