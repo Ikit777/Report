@@ -10,8 +10,8 @@ class SiteController extends Controller
 {
     public function index()
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengelola site.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengelola site.');
         }
 
         $sites = Site::orderBy('code')->paginate(15);
@@ -21,8 +21,8 @@ class SiteController extends Controller
 
     public function create()
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengelola site.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengelola site.');
         }
 
         return view('sites.create');
@@ -30,8 +30,8 @@ class SiteController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengelola site.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengelola site.');
         }
 
         $request->validate([
@@ -52,8 +52,8 @@ class SiteController extends Controller
 
     public function edit($id)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengelola site.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengelola site.');
         }
 
         $site = Site::findOrFail($id);
@@ -63,8 +63,8 @@ class SiteController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengelola site.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengelola site.');
         }
 
         $site = Site::findOrFail($id);
@@ -87,8 +87,8 @@ class SiteController extends Controller
 
     public function destroy($id)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengelola site.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengelola site.');
         }
 
         $site = Site::findOrFail($id);

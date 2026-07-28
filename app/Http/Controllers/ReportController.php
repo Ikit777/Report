@@ -553,8 +553,8 @@ class ReportController extends Controller
         $report = DailyReport::findOrFail($id);
         $user = Auth::user();
 
-        if (!$user->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat menyetujui laporan.');
+        if (!$user->isSpv() && !$user->isAdmin()) {
+            abort(403, 'Hanya Supervisor atau Admin yang dapat menyetujui laporan.');
         }
 
         if ($report->status !== 'verified') {

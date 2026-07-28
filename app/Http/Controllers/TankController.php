@@ -24,8 +24,8 @@ class TankController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->isGl() && !$user->isSpv()) {
-            abort(403, 'Hanya Group Leader dan Supervisor yang dapat memantau kondisi tangki BBM.');
+        if (!$user->isGl() && !$user->isSpv() && !$user->isAdmin()) {
+            abort(403, 'Hanya Group Leader, Supervisor, dan Admin yang dapat memantau kondisi tangki BBM.');
         }
 
         $request->validate([
@@ -157,8 +157,8 @@ class TankController extends Controller
 
     public function create()
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat menambah tangki baru.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat menambah tangki baru.');
         }
         
         $sites = \App\Models\Site::where('is_active', true)->orderBy('code')->get();
@@ -167,8 +167,8 @@ class TankController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat menambah tangki baru.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat menambah tangki baru.');
         }
 
         $request->validate([
@@ -208,8 +208,8 @@ class TankController extends Controller
 
     public function edit($id)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengubah data tangki.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengubah data tangki.');
         }
 
         $tank = Tank::findOrFail($id);
@@ -219,8 +219,8 @@ class TankController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat mengubah data tangki.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat mengubah data tangki.');
         }
 
         $tank = Tank::findOrFail($id);
@@ -421,8 +421,8 @@ class TankController extends Controller
 
     public function destroy($id)
     {
-        if (!Auth::user()->isSpv()) {
-            abort(403, 'Hanya Supervisor yang dapat menghapus tangki.');
+        if (!Auth::user()->isSpv() && !Auth::user()->isAdmin()) {
+            abort(403, 'Hanya Supervisor dan Admin yang dapat menghapus tangki.');
         }
 
         $tank = Tank::findOrFail($id);

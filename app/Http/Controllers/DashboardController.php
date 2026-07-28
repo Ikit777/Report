@@ -63,7 +63,7 @@ class DashboardController extends Controller
             return view('dashboard', compact('stats', 'recentReports', 'pendingReports'));
         }
         
-        if ($user->isSpv()) {
+        if ($user->isSpv() || $user->isAdmin()) {
             $stats['pending_approval'] = DailyReport::where('status', 'verified')->count();
             $stats['approved_by_me'] = DailyReport::where('status', 'approved')->where('spv_id', $user->id)->count();
             $stats['total_reports'] = DailyReport::count();
