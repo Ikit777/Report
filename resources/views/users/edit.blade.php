@@ -46,7 +46,10 @@
             <select name="role" id="role" class="form-control" required>
                 <option value="fuelman" {{ (old('role', $user->role) === 'fuelman') ? 'selected' : '' }}>Fuelman</option>
                 <option value="group_leader" {{ (old('role', $user->role) === 'group_leader') ? 'selected' : '' }}>Group Leader</option>
-                <option value="supervisor" {{ (old('role', $user->role) === 'supervisor') ? 'selected' : '' }}>Supervisor</option>
+                @if($currentUser->isAdmin())
+                    <option value="supervisor" {{ (old('role', $user->role) === 'supervisor') ? 'selected' : '' }}>Supervisor</option>
+                    <option value="admin" {{ (old('role', $user->role) === 'admin') ? 'selected' : '' }}>Admin</option>
+                @endif
             </select>
         </div>
 

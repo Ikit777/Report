@@ -112,6 +112,7 @@
     /* Average row style */
     .sheet-table tr.average-row td {
         background-color: #f8fafc;
+        font-weight: normal !important;
     }
 
     .report-stats-grid {

@@ -28,6 +28,11 @@ class User extends Authenticatable
     {
         return $this->role === 'supervisor';
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 

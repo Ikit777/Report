@@ -123,10 +123,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('reports', ReportController::class);
     Route::post('/reports/{id}/submit', [ReportController::class, 'submit'])->name('reports.submit');
     Route::post('/reports/{id}/verify', [ReportController::class, 'verify'])->name('reports.verify')->middleware('role:gl');
-    Route::post('/reports/{id}/approve', [ReportController::class, 'approve'])->name('reports.approve')->middleware('role:spv');
+    Route::post('/reports/{id}/approve', [ReportController::class, 'approve'])->name('reports.approve')->middleware('role:spv,admin');
     Route::post('/reports/{id}/approve-gl', [ReportController::class, 'approveGL'])->name('reports.approve-gl')->middleware('role:gl');
-    Route::post('/reports/{id}/approve-spv', [ReportController::class, 'approveSPV'])->name('reports.approve-spv')->middleware('role:spv');
-    Route::post('/reports/{id}/reject', [ReportController::class, 'reject'])->name('reports.reject')->middleware('role:gl,spv');
+    Route::post('/reports/{id}/approve-spv', [ReportController::class, 'approveSPV'])->name('reports.approve-spv')->middleware('role:spv,admin');
+    Route::post('/reports/{id}/reject', [ReportController::class, 'reject'])->name('reports.reject')->middleware('role:gl,spv,admin');
     
     // Tanks
     Route::get('/tanks', [TankController::class, 'index'])->name('tanks.index')->middleware('role:gl,spv,admin');

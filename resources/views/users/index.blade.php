@@ -52,6 +52,8 @@
                                 <span class="badge badge-verified">Group Leader</span>
                             @elseif($user->isSpv())
                                 <span class="badge badge-approved">Supervisor</span>
+                            @elseif($user->isAdmin())
+                                <span class="badge" style="background-color: #7c3aed; color: white;">Admin</span>
                             @else
                                 <span class="badge badge-draft">{{ $user->role }}</span>
                             @endif

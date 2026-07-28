@@ -46,7 +46,10 @@
                 <option value="" disabled selected>-- Pilih Role --</option>
                 <option value="fuelman" {{ old('role') === 'fuelman' ? 'selected' : '' }}>Fuelman</option>
                 <option value="group_leader" {{ old('role') === 'group_leader' ? 'selected' : '' }}>Group Leader</option>
-                <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                @if($currentUser->isAdmin())
+                    <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                @endif
             </select>
         </div>
 
