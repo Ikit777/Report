@@ -15,6 +15,15 @@
 <form action="{{ route('reports.update', $report->id) }}" method="POST" id="reportForm" enctype="multipart/form-data">
     @csrf
     @method('PUT')
+    
+    <style>
+        /* Ensure average row inputs are not bold */
+        tr[data-avg-type="average"] input,
+        tr[data-avg-type="average"] select,
+        tr[data-avg-type="average"] td {
+            font-weight: normal !important;
+        }
+    </style>
 
     <div class="report-sheet-container">
         <div class="sheet-header-container" style="display: grid; grid-template-columns: 120px 1fr 120px; align-items: center; width: 100%; margin-bottom: 1.5rem;">

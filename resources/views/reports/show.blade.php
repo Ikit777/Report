@@ -112,7 +112,6 @@
     /* Average row style */
     .sheet-table tr.average-row td {
         background-color: #f8fafc;
-        font-weight: 700;
     }
 
     .report-stats-grid {
@@ -641,6 +640,8 @@
                                         
                                     @elseif(Auth::user()->isFuelman())
                                         XXXX
+                                    @elseif($item->main_hole_variant === 'DEPAN' || $item->main_hole_variant === 'BELAKANG')
+                                        XXXX
                                     @elseif($item->liter_pagi !== null)
                                         {{ number_format($item->liter_pagi, 0, ',', '.') }}
                                     @else
@@ -660,6 +661,8 @@
                                     @if($item->sounding_sore === null)
                                         
                                     @elseif(Auth::user()->isFuelman())
+                                        XXXX
+                                    @elseif($item->main_hole_variant === 'DEPAN' || $item->main_hole_variant === 'BELAKANG')
                                         XXXX
                                     @elseif($item->liter_sore !== null)
                                         {{ number_format($item->liter_sore, 0, ',', '.') }}
