@@ -22,19 +22,24 @@
         body {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
-            overflow-x: hidden;
+            padding: 1rem;
+            overflow: hidden;
         }
 
         .error-container {
-            max-width: 600px;
+            max-width: 550px;
             width: 100%;
             text-align: center;
             animation: fadeInUp 0.8s ease-out;
+            max-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         @keyframes fadeInUp {
@@ -49,11 +54,11 @@
         }
 
         .error-code {
-            font-size: 10rem;
+            font-size: 6rem;
             font-weight: 800;
             color: rgba(255, 255, 255, 0.95);
             line-height: 1;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             animation: bounce 2s ease-in-out infinite;
         }
@@ -68,9 +73,9 @@
         }
 
         .error-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 2rem;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border-radius: 50%;
@@ -82,8 +87,8 @@
         }
 
         .error-icon svg {
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             stroke: white;
             filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
         }
@@ -91,88 +96,95 @@
         .error-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 3rem 2.5rem;
+            border-radius: 20px;
+            padding: 1.5rem;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            margin-top: 2rem;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 1.75rem;
             font-weight: 800;
             color: #1e293b;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             line-height: 1.2;
         }
 
         .error-message {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: #64748b;
-            line-height: 1.6;
-            margin-bottom: 2rem;
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
         }
 
         .suggestions {
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
             border: 2px solid #bae6fd;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.25rem;
             text-align: left;
         }
 
         .suggestions h3 {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #0c4a6e;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .suggestions ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
 
         .suggestions li {
-            padding: 0.5rem 0;
+            padding: 0.35rem 0;
             color: #0369a1;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: flex-start;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            line-height: 1.4;
         }
 
         .suggestions li:before {
             content: "•";
             color: #0284c7;
             font-weight: bold;
-            font-size: 1.2rem;
-            line-height: 1;
+            font-size: 1rem;
+            line-height: 1.4;
+            flex-shrink: 0;
         }
 
         .action-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             justify-content: center;
             flex-wrap: wrap;
         }
 
         .btn {
-            padding: 0.875rem 2rem;
-            border-radius: 12px;
+            padding: 0.65rem 1.5rem;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.9rem;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             transition: all 0.3s ease;
             border: none;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
         }
 
         .btn-primary {
@@ -199,24 +211,28 @@
 
         @media (max-width: 640px) {
             .error-code {
-                font-size: 6rem;
+                font-size: 4.5rem;
             }
 
             h1 {
-                font-size: 1.75rem;
+                font-size: 1.5rem;
             }
 
             .error-card {
-                padding: 2rem 1.5rem;
+                padding: 1.25rem;
             }
 
-            .action-buttons {
-                flex-direction: column;
+            .error-message {
+                font-size: 0.9rem;
+            }
+
+            .suggestions li {
+                font-size: 0.8rem;
             }
 
             .btn {
-                width: 100%;
-                justify-content: center;
+                font-size: 0.85rem;
+                padding: 0.6rem 1.25rem;
             }
         }
 
