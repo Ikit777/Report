@@ -56,20 +56,12 @@
                         : collect();
                     
                     // Determine photo limit based on tank main_hole
-                    $photoLimit = 8; // default for TENGAH
+                    // Only DEPAN/BELAKANG variants get 4 photos, everything else gets 8
+                    $photoLimit = 8; // default for most tanks (TENGAH, etc.)
                     $photoLimitText = 'Maks. 8 foto';
-                    if ($selectedTank) {
-                        if ($selectedTank->main_hole === 'TENGAH') {
-                            $photoLimit = 8;
-                            $photoLimitText = 'Maks. 8 foto';
-                        } elseif (str_contains($selectedTank->main_hole, 'DEPAN + BELAKANG')) {
-                            $photoLimit = 4;
-                            $photoLimitText = 'Maks. 4 foto';
-                        } else {
-                            // Other main_hole types (e.g., normal tanks)
-                            $photoLimit = 4;
-                            $photoLimitText = 'Maks. 4 foto';
-                        }
+                    if ($selectedTank && (str_contains($selectedTank->main_hole, 'DEPAN') || str_contains($selectedTank->main_hole, 'BELAKANG'))) {
+                        $photoLimit = 4;
+                        $photoLimitText = 'Maks. 4 foto';
                     }
                 @endphp
                 <div class="photo-selected-list" data-photo-selected>

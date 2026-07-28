@@ -187,7 +187,11 @@ class ReportController extends Controller
                 if (!empty($item['tank_id']) && !empty($item['photos'])) {
                     $tank = \App\Models\Tank::find($item['tank_id']);
                     if ($tank) {
-                        $maxPhotos = ($tank->main_hole === 'TENGAH') ? 8 : 4;
+                        // Only DEPAN/BELAKANG variants get 4 photos, everything else gets 8
+                        $maxPhotos = 8; // default
+                        if (str_contains($tank->main_hole, 'DEPAN') || str_contains($tank->main_hole, 'BELAKANG')) {
+                            $maxPhotos = 4;
+                        }
                         if (count($item['photos']) > $maxPhotos) {
                             return back()->withInput()->withErrors([
                                 "items.{$index}.photos" => "Tangki dengan main hole {$tank->main_hole} maksimal {$maxPhotos} foto."
@@ -410,7 +414,11 @@ class ReportController extends Controller
                 if (!empty($item['tank_id']) && !empty($item['photos'])) {
                     $tank = \App\Models\Tank::find($item['tank_id']);
                     if ($tank) {
-                        $maxPhotos = ($tank->main_hole === 'TENGAH') ? 8 : 4;
+                        // Only DEPAN/BELAKANG variants get 4 photos, everything else gets 8
+                        $maxPhotos = 8; // default
+                        if (str_contains($tank->main_hole, 'DEPAN') || str_contains($tank->main_hole, 'BELAKANG')) {
+                            $maxPhotos = 4;
+                        }
                         if (count($item['photos']) > $maxPhotos) {
                             return back()->withInput()->withErrors([
                                 "items.{$index}.photos" => "Tangki dengan main hole {$tank->main_hole} maksimal {$maxPhotos} foto."

@@ -1261,9 +1261,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const photoCell = row.querySelector('.photo-upload-cell');
             if (photoCell && mainHole) {
                 const existingDesc = photoCell.querySelector('div[style*="font-size: 0.75rem"]');
-                let maxPhotos = 4; // default for non-TENGAH tanks
-                if (mainHole === 'TENGAH') {
-                    maxPhotos = 8;
+                // Only DEPAN/BELAKANG variants get 4 photos, everything else gets 8
+                let maxPhotos = 8; // default
+                if (mainHole.includes('DEPAN') || mainHole.includes('BELAKANG')) {
+                    maxPhotos = 4;
                 }
                 if (existingDesc) {
                     existingDesc.textContent = `Maks. ${maxPhotos} foto`;
