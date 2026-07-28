@@ -994,6 +994,7 @@ class ReportController extends Controller
                     'attachment_key' => $attachmentKey,
                     'context' => $context,
                     'path' => $path,
+                    'original_name' => $photo->getClientOriginalName(),
                 ]);
             } catch (\Throwable $e) {
                 \Log::error("Failed to upload photo", [

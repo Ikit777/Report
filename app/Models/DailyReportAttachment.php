@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class DailyReportAttachment extends Model
 {
-    protected $fillable = ['daily_report_id', 'section', 'attachment_key', 'context', 'path'];
+    protected $fillable = ['daily_report_id', 'section', 'attachment_key', 'context', 'path', 'original_name'];
 
     public function dailyReport(): BelongsTo
     {
