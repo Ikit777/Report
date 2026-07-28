@@ -563,10 +563,10 @@
                                 </select>
                             </td>
                             <td>
-                                <input type="text" name="flowmeters[{{ $i }}][jenis_flowmeter]" class="sheet-input flowmeter-jenis-input" data-index="{{ $i }}" readonly value="{{ old("flowmeters.{$i}.jenis_flowmeter", $fData ? $fData->jenis_flowmeter : '') }}">
+                                <input type="text" name="flowmeters[{{ $i }}][jenis_flowmeter]" class="sheet-input read-only flowmeter-jenis-input" data-index="{{ $i }}" readonly value="{{ old("flowmeters.{$i}.jenis_flowmeter", $fData ? $fData->jenis_flowmeter : '') }}">
                             </td>
                             <td>
-                                <input type="text" name="flowmeters[{{ $i }}][nomor_seri]" class="sheet-input flowmeter-nomor-input" data-index="{{ $i }}" readonly value="{{ old("flowmeters.{$i}.nomor_seri", $fData ? $fData->nomor_seri : '') }}">
+                                <input type="text" name="flowmeters[{{ $i }}][nomor_seri]" class="sheet-input read-only flowmeter-nomor-input" data-index="{{ $i }}" readonly value="{{ old("flowmeters.{$i}.nomor_seri", $fData ? $fData->nomor_seri : '') }}">
                             </td>
                             <td>
                                 <input type="text" inputmode="decimal" name="flowmeters[{{ $i }}][awal_pagi]" class="sheet-input" data-index="{{ $i }}" data-flow-type="awal_pagi" value="{{ old("flowmeters.{$i}.awal_pagi", $fData ? $fData->awal_pagi : '') }}">
@@ -1856,8 +1856,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <option value="">Pilih Unit</option>
                 </select>
             </td>
-            <td><input type="text" name="flowmeters[${index}][jenis_flowmeter]" class="sheet-input flowmeter-jenis-input" data-index="${index}" readonly></td>
-            <td><input type="text" name="flowmeters[${index}][nomor_seri]" class="sheet-input flowmeter-nomor-input" data-index="${index}" readonly></td>
+            <td><input type="text" name="flowmeters[${index}][jenis_flowmeter]" class="sheet-input read-only flowmeter-jenis-input" data-index="${index}" readonly></td>
+            <td><input type="text" name="flowmeters[${index}][nomor_seri]" class="sheet-input read-only flowmeter-nomor-input" data-index="${index}" readonly></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][awal_pagi]" class="sheet-input" data-index="${index}" data-flow-type="awal_pagi"></td>
             <td><input type="text" inputmode="decimal" name="flowmeters[${index}][akhir_sore]" class="sheet-input" data-index="${index}" data-flow-type="akhir_sore"></td>
             <td><input type="number" step="1" name="flowmeters[${index}][jumlah_pakai]" class="sheet-input read-only" data-index="${index}" data-flow-type="jumlah_pakai" readonly></td>

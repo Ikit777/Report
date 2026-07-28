@@ -337,6 +337,19 @@ body.dark-mode .brand-logo {
     border-radius: var(--radius-md);
     font-weight: 500;
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+    position: relative;
+}
+
+.nav-item a .badge-count {
+    margin-left: auto;
+    background-color: var(--primary);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    min-width: 20px;
+    text-align: center;
 }
 
 .nav-item a:hover, .nav-item.active a {
@@ -420,6 +433,7 @@ body.dark-mode .brand-logo {
 .sidebar.is-collapsed .brand-sub,
 .sidebar.is-collapsed .user-info,
 .sidebar.is-collapsed .nav-item span,
+.sidebar.is-collapsed .nav-item .badge-count,
 .sidebar.is-collapsed .theme-text,
 .sidebar.is-collapsed .btn-logout span {
     display: none;

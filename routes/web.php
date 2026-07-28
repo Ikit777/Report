@@ -128,6 +128,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/reports/{id}/approve-spv', [ReportController::class, 'approveSPV'])->name('reports.approve-spv')->middleware('role:spv');
     Route::post('/reports/{id}/reject', [ReportController::class, 'reject'])->name('reports.reject')->middleware('role:gl,spv');
     
+    // Collaboration routes
+    Route::get('/reports/collaborations/list', [ReportController::class, 'collaborations'])->name('reports.collaborations')->middleware('role:fuelman');
+    Route::post('/reports/{id}/add-collaborator', [ReportController::class, 'addCollaborator'])->name('reports.add-collaborator')->middleware('role:fuelman');
+    Route::delete('/reports/{id}/remove-collaborator', [ReportController::class, 'removeCollaborator'])->name('reports.remove-collaborator')->middleware('role:fuelman');
+    
     // Tanks
     Route::get('/tanks', [TankController::class, 'index'])->name('tanks.index')->middleware('role:gl,spv,admin');
     Route::get('/tanks/monitoring', [TankController::class, 'monitoring'])->name('tanks.monitoring')->middleware('role:gl,spv,admin');

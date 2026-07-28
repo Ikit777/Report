@@ -94,8 +94,12 @@ class ReportController extends Controller
         
         $defaultDate = now()->format('Y-m-d');
         $sites = \App\Models\Site::where('is_active', true)->orderBy('code')->get();
+        
+        // Create empty report object for consistency with edit view
+        $report = new DailyReport();
+        $report->collaborator_id = null;
 
-        return view('reports.create', compact('tanks', 'defaultDate', 'sites'));
+        return view('reports.create', compact('tanks', 'defaultDate', 'sites', 'report'));
     }
 
     public function store(Request $request)
@@ -283,7 +287,15 @@ class ReportController extends Controller
 
     public function show($id)
     {
-        $report = DailyReport::with(['items.tank', 'transfers', 'flowmeters', 'attachments', 'fuelman', 'gl', 'spv', 'site'])->findOrFail($id);
+        $report = DailyReport::with(['items.tank', 'transfers', 'flowmeters', 'attachments', 'fuelman', 'gl', 'spv', 'site', 'collaborator'])->findOrFail($id);
+        $user = Auth::user();
+
+        // Authorization: Fuelman can only view their own reports OR reports where they are collaborator
+        if ($user->isFuelman()) {
+            if ($report->fuelman_id !== $user->id && $report->collaborator_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+            }
+        }
 
         // Debug: Log attachment URLs
         if ($report->attachments->isNotEmpty()) {
@@ -303,11 +315,16 @@ class ReportController extends Controller
 
     public function edit($id)
     {
-        $report = DailyReport::with(['items.tank', 'transfers', 'flowmeters', 'attachments'])->findOrFail($id);
+        $report = DailyReport::with(['items.tank', 'transfers', 'flowmeters', 'attachments', 'collaborator'])->findOrFail($id);
         $user = Auth::user();
 
-        if (!$user->isFuelman() || $report->fuelman_id !== $user->id) {
-            abort(403, 'Hanya pembuat laporan yang dapat mengubah draft.');
+        // Authorization: Only fuelman (creator OR collaborator) can edit
+        if (!$user->isFuelman()) {
+            abort(403, 'Hanya Fuelman yang dapat mengubah laporan.');
+        }
+        
+        if ($report->fuelman_id !== $user->id && $report->collaborator_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah laporan ini.');
         }
 
         if (!in_array($report->status, ['draft', 'rejected'])) {
@@ -339,8 +356,13 @@ class ReportController extends Controller
         $report = DailyReport::findOrFail($id);
         $user = Auth::user();
 
-        if (!$user->isFuelman() || $report->fuelman_id !== $user->id) {
-            abort(403, 'Hanya pembuat laporan yang dapat mengubah draft.');
+        // Authorization: Only fuelman (creator OR collaborator) can update
+        if (!$user->isFuelman()) {
+            abort(403, 'Hanya Fuelman yang dapat mengubah laporan.');
+        }
+        
+        if ($report->fuelman_id !== $user->id && $report->collaborator_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah laporan ini.');
         }
 
         if (!in_array($report->status, ['draft', 'rejected'])) {
@@ -1073,3 +1095,118 @@ class ReportController extends Controller
         }
     }
 }
+
+    /**
+     * Show list of reports where user is a collaborator
+     */
+    public function collaborations(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user->isFuelman()) {
+            abort(403, 'Hanya Fuelman yang dapat mengakses laporan kolaborasi.');
+        }
+        
+        // Get filter parameters
+        $search = $request->get('search');
+        $status = $request->get('status');
+        $sortOrder = $request->get('sort', 'desc');
+        $perPage = $request->get('per_page', 15);
+        
+        if (!in_array($perPage, [10, 25, 50, 100])) {
+            $perPage = 15;
+        }
+        
+        $query = DailyReport::with(['fuelman', 'gl', 'spv', 'site'])
+            ->where('collaborator_id', $user->id);
+        
+        // Filter by status
+        if ($status) {
+            $query->where('status', $status);
+        }
+        
+        // Search in date or fuelman name
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereRaw("to_char(date, 'YYYY-MM-DD') LIKE ?", ["%{$search}%"])
+                  ->orWhereHas('fuelman', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        $query->orderBy('date', $sortOrder);
+        
+        $reports = $query->paginate($perPage);
+        
+        return view('reports.collaborations', compact('reports', 'search', 'status', 'sortOrder', 'perPage'));
+    }
+    
+    /**
+     * Add a collaborator to a report
+     */
+    public function addCollaborator(Request $request, $id)
+    {
+        $report = DailyReport::findOrFail($id);
+        $user = Auth::user();
+        
+        // Only report creator can add collaborator
+        if (!$user->isFuelman() || $report->fuelman_id !== $user->id) {
+            abort(403, 'Hanya pembuat laporan yang dapat menambah kolaborator.');
+        }
+        
+        // Validate collaborator_id
+        $request->validate([
+            'collaborator_id' => 'required|exists:users,id',
+        ]);
+        
+        $collaboratorId = $request->collaborator_id;
+        
+        // Cannot add self as collaborator
+        if ($collaboratorId == $user->id) {
+            return back()->with('error', 'Anda tidak dapat menambahkan diri sendiri sebagai kolaborator.');
+        }
+        
+        // Check if collaborator is fuelman
+        $collaborator = \App\Models\User::find($collaboratorId);
+        if (!$collaborator->isFuelman()) {
+            return back()->with('error', 'Kolaborator harus memiliki role Fuelman.');
+        }
+        
+        // Check if already has collaborator (max 1)
+        if ($report->collaborator_id) {
+            return back()->with('error', 'Laporan ini sudah memiliki kolaborator. Hapus kolaborator yang ada terlebih dahulu.');
+        }
+        
+        // Add collaborator and save their name for history
+        $report->update([
+            'collaborator_id' => $collaboratorId,
+            'collaborator_name' => $collaborator->name,
+        ]);
+        
+        return back()->with('success', "Berhasil menambahkan {$collaborator->name} sebagai kolaborator.");
+    }
+    
+    /**
+     * Remove collaborator from a report
+     */
+    public function removeCollaborator($id)
+    {
+        $report = DailyReport::findOrFail($id);
+        $user = Auth::user();
+        
+        // Only report creator can remove collaborator
+        if (!$user->isFuelman() || $report->fuelman_id !== $user->id) {
+            abort(403, 'Hanya pembuat laporan yang dapat menghapus kolaborator.');
+        }
+        
+        if (!$report->collaborator_id) {
+            return back()->with('error', 'Laporan ini tidak memiliki kolaborator.');
+        }
+        
+        // Remove collaborator_id BUT keep collaborator_name for history
+        $report->update(['collaborator_id' => null]);
+        // NOTE: collaborator_name is NOT set to null, so dropdown will still appear
+        
+        return back()->with('success', 'Kolaborator berhasil dihapus.');
+    }

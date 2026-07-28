@@ -154,6 +154,25 @@
                         <span>Laporan Harian</span>
                     </a>
                 </li>
+                @if(Auth::user()->isFuelman())
+                    @php
+                        $collabCount = \App\Models\DailyReport::where('collaborator_id', Auth::id())->count();
+                    @endphp
+                    <li class="nav-item {{ Route::is('reports.collaborations') ? 'active' : '' }}">
+                        <a href="{{ route('reports.collaborations') }}">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span>Laporan Kolaborasi</span>
+                            @if($collabCount > 0)
+                                <span class="badge-count">{{ $collabCount }}</span>
+                            @endif
+                        </a>
+                    </li>
+                @endif
                 @if(!Auth::user()->isFuelman())
                     <li class="nav-item {{ Route::is('reports.analytics') ? 'active' : '' }}">
                         <a href="{{ route('reports.analytics') }}">

@@ -489,6 +489,88 @@
     </div>
 </div>
 
+<!-- COLLABORATION MANAGEMENT PANEL -->
+@if(Auth::user()->isFuelman() && $report->fuelman_id === Auth::id() && in_array($report->status, ['draft', 'rejected']))
+<div class="card-table-container no-print" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        </div>
+        <div>
+            <h2 class="card-title" style="margin: 0;">Kolaborasi Laporan</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.25rem 0 0;">Tambahkan Fuelman lain untuk berkolaborasi dalam laporan ini (maks. 1 kolaborator)</p>
+        </div>
+    </div>
+    
+    @if($report->collaborator_id)
+        {{-- Show current collaborator with option to remove --}}
+        <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #86efac; border-radius: 12px; padding: 1.25rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; flex-shrink: 0;">
+                        {{ strtoupper(substr($report->collaborator->name, 0, 1)) }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.05rem; color: #166534; margin-bottom: 0.25rem;">
+                            {{ $report->collaborator->name }}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #15803d;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span>Kolaborator Aktif</span>
+                        </div>
+                    </div>
+                </div>
+                <form action="{{ route('reports.remove-collaborator', $report->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kolaborator? Mereka tidak akan bisa lagi melihat atau mengedit laporan ini.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger" style="padding: 0.65rem 1.25rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Hapus Kolaborator
+                    </button>
+                </form>
+            </div>
+        </div>
+    @else
+        {{-- Form to add collaborator --}}
+        <form action="{{ route('reports.add-collaborator', $report->id) }}" method="POST">
+            @csrf
+            <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; border-radius: 12px; padding: 1.25rem;">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label for="collaborator_id" style="font-weight: 600; margin-bottom: 0.5rem; display: block; color: #1e40af;">Pilih Fuelman Kolaborator</label>
+                        <select name="collaborator_id" id="collaborator_id" class="form-control" required>
+                            <option value="">-- Pilih Fuelman --</option>
+                            @foreach(\App\Models\User::where('role', 'fuelman')->where('id', '!=', Auth::id())->orderBy('name')->get() as $fuelman)
+                                <option value="{{ $fuelman->id }}">{{ $fuelman->name }}</option>
+                            @endforeach
+                        </select>
+                        <small style="color: #3b82f6; margin-top: 0.25rem; display: block;">Kolaborator dapat melihat dan mengedit laporan ini, tetapi tidak dapat menghapusnya.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; white-space: nowrap;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Tambah Kolaborator
+                    </button>
+                </div>
+            </div>
+        </form>
+    @endif
+</div>
+@endif
+
 <!-- REJECTION FEEDBACK -->
 @if(in_array($report->status, ['rejected']) && ($report->gl_feedback || $report->spv_feedback))
     <div class="feedback-box rejected no-print" style="margin-bottom: 1.5rem;">
@@ -678,10 +760,10 @@
                                 
                                 <!-- Angka FM Kecil -->
                                 <td style="text-align: right; padding-right: 8px;">
-                                    {{ $item->fm_pagi !== null ? number_format($item->fm_pagi, 0, ',', '.') : '' }}
+                                    {{ $item->fm_pagi !== null ? $item->fm_pagi : '' }}
                                 </td>
                                 <td style="text-align: right; padding-right: 8px;">
-                                    {{ $item->fm_sore !== null ? number_format($item->fm_sore, 0, ',', '.') : '' }}
+                                    {{ $item->fm_sore !== null ? $item->fm_sore : '' }}
                                 </td>
                                 <td class="val-pakai" style="text-align: right; padding-right: 8px;">
                                         @if($item->fm_pagi !== null && $item->fm_sore !== null)

@@ -1,0 +1,255 @@
+@extends('layouts.app')
+
+@section('title', 'Laporan Kolaborasi')
+
+@section('content')
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Laporan Kolaborasi</h1>
+        <p class="page-subtitle">Laporan dimana Anda ditambahkan sebagai kolaborator</p>
+    </div>
+</div>
+
+<!-- Filter & Search Section -->
+<div class="card-table-container" style="margin-bottom: 1.5rem;">
+    <form method="GET" action="{{ route('reports.collaborations') }}" class="form-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem; align-items: end;">
+        <!-- Pencarian - Paling kiri dan lebih lebar -->
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="search">Pencarian</label>
+            <input type="text" name="search" id="search" class="form-control" placeholder="Cari tanggal, nama pembuat..." value="{{ $search ?? '' }}">
+        </div>
+        
+        <!-- Status -->
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="status">Status</label>
+            <select name="status" id="status" class="form-control">
+                <option value="">Semua Status</option>
+                <option value="draft" {{ $status == 'draft' ? 'selected' : '' }}>Draft</option>
+                <option value="submitted" {{ $status == 'submitted' ? 'selected' : '' }}>Menunggu GL</option>
+                <option value="verified" {{ $status == 'verified' ? 'selected' : '' }}>Menunggu SPV</option>
+                <option value="approved" {{ $status == 'approved' ? 'selected' : '' }}>Disetujui</option>
+                <option value="rejected" {{ $status == 'rejected' ? 'selected' : '' }}>Direvisi</option>
+            </select>
+        </div>
+        
+        <!-- Urutkan -->
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="sort">Urutkan</label>
+            <select name="sort" id="sort" class="form-control">
+                <option value="desc" {{ $sortOrder == 'desc' ? 'selected' : '' }}>Terbaru</option>
+                <option value="asc" {{ $sortOrder == 'asc' ? 'selected' : '' }}>Terlama</option>
+            </select>
+        </div>
+        
+        <!-- Tombol Terapkan -->
+        <div class="form-group" style="margin-bottom: 0;">
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                Terapkan
+            </button>
+        </div>
+    </form>
+    
+    @if($search || $status)
+    <div style="margin-top: 1rem;">
+        <a href="{{ route('reports.collaborations') }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Reset Filter
+        </a>
+    </div>
+    @endif
+</div>
+
+<div class="card-table-container">
+    <!-- Header dengan Tampilkan per halaman -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 class="card-title" style="margin: 0;">Daftar Laporan Kolaborasi</h2>
+        <form method="GET" action="{{ route('reports.collaborations') }}" style="display: flex; align-items: center; gap: 0.5rem;">
+            <!-- Preserve all filter params -->
+            <input type="hidden" name="status" value="{{ $status }}">
+            <input type="hidden" name="search" value="{{ $search }}">
+            <input type="hidden" name="sort" value="{{ $sortOrder }}">
+            
+            <label for="per_page_top" style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">Tampilkan:</label>
+            <select name="per_page" id="per_page_top" class="form-control" onchange="this.form.submit()" style="width: auto; padding: 0.4rem 0.75rem; font-size: 0.9rem;">
+                <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+            </select>
+        </form>
+    </div>
+
+    @if($reports->total() > 0)
+    <div style="padding: 1rem; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 8px; border-left: 4px solid #3b82f6; margin-bottom: 1.5rem;">
+        <p style="font-size: 0.9rem; color: #1e40af; margin: 0;">
+            <strong>Info:</strong> Anda dapat melihat dan mengedit laporan di bawah ini, tetapi tidak dapat menghapusnya. Hanya pembuat laporan yang dapat menghapus kolaborasi.
+        </p>
+    </div>
+    @endif
+
+    <div class="table-responsive">
+        <table class="table-list">
+            <thead>
+                <tr>
+                    <th>Tanggal Laporan</th>
+                    <th>Hari</th>
+                    <th>Site / Lokasi</th>
+                    <th>Dibuat Oleh (Fuelman)</th>
+                    <th>GL Pemverifikasi</th>
+                    <th>SPV Penyetuju</th>
+                    <th>Status</th>
+                    <th style="text-align: center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($reports as $report)
+                    @php
+                        // Get Indonesian day name
+                        $days = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+                        $dayName = $days[$report->date->format('l')] ?? $report->date->format('l');
+                    @endphp
+                    <tr>
+                        <td><strong>{{ $report->date->format('d-m-Y') }}</strong></td>
+                        <td>{{ $dayName }}</td>
+                        <td>{{ $report->site ? $report->site->name : '-' }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                {{ $report->fuelman->name }}
+                                <span class="badge" style="background-color: #e0f2fe; color: #0369a1; font-size: 0.65rem; padding: 2px 6px;">Pembuat</span>
+                            </div>
+                        </td>
+                        <td>{{ $report->gl ? $report->gl->name : '-' }}</td>
+                        <td>{{ $report->spv ? $report->spv->name : '-' }}</td>
+                        <td>
+                            @if($report->status === 'draft')
+                                <span class="badge badge-draft">Draft</span>
+                            @elseif($report->status === 'submitted')
+                                <span class="badge badge-submitted">Menunggu GL</span>
+                            @elseif($report->status === 'verified')
+                                <span class="badge badge-verified">Menunggu SPV</span>
+                            @elseif($report->status === 'approved')
+                                <span class="badge badge-approved">Disetujui</span>
+                            @elseif($report->status === 'rejected')
+                                <span class="badge badge-rejected">Direvisi</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: center;">
+                                <!-- Detail Button -->
+                                <a href="{{ route('reports.show', $report->id) }}" class="icon-btn icon-btn-info" title="Detail">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </a>
+                                
+                                <!-- Edit Button - Hanya untuk status draft/rejected -->
+                                @if(in_array($report->status, ['draft', 'rejected']))
+                                    <a href="{{ route('reports.edit', $report->id) }}" class="icon-btn icon-btn-primary" title="Ubah">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 20h9"></path>
+                                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                        </svg>
+                                    </a>
+                                @endif
+                                
+                                <!-- NO Delete Button - Kolaborator tidak bisa delete -->
+                                <button type="button" class="icon-btn icon-btn-danger" title="Anda tidak dapat menghapus laporan kolaborasi" style="opacity: 0.3; cursor: not-allowed;" disabled>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 6h18"></path>
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; opacity: 0.3;">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                Belum Ada Laporan Kolaborasi
+                            </div>
+                            <div style="font-size: 0.9rem; color: var(--text-muted);">
+                                @if($search || $status)
+                                    Tidak ada laporan kolaborasi yang sesuai dengan filter.
+                                @else
+                                    Anda belum ditambahkan sebagai kolaborator di laporan manapun.
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    
+    {{-- Custom Pagination --}}
+    <div style="margin-top: 1.5rem;">
+        @if($reports->total() > 0)
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; gap: 1rem; flex-wrap: wrap;">
+                {{-- Info Simpel --}}
+                <div style="color: var(--text-muted); font-size: 0.9rem;">
+                    Total <strong style="color: var(--text-primary);">{{ $reports->total() }}</strong> laporan kolaborasi
+                </div>
+                
+                {{-- Pagination Controls --}}
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    {{-- Previous Button --}}
+                    @if($reports->onFirstPage())
+                        <span style="padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-muted); font-size: 0.9rem; cursor: not-allowed; opacity: 0.5;">
+                            ← Sebelumnya
+                        </span>
+                    @else
+                        <a href="{{ $reports->appends(['status' => $status, 'search' => $search, 'sort' => $sortOrder, 'per_page' => $perPage])->previousPageUrl() }}" style="padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.9rem; text-decoration: none; transition: all 0.2s ease; display: inline-block;">
+                            ← Sebelumnya
+                        </a>
+                    @endif
+                    
+                    {{-- Page Info --}}
+                    <span style="padding: 0.5rem 1rem; border: 1px solid var(--primary); border-radius: 8px; background: var(--primary); color: white; font-size: 0.9rem; font-weight: 600;">
+                        Halaman {{ $reports->currentPage() }} dari {{ $reports->lastPage() }}
+                    </span>
+                    
+                    {{-- Next Button --}}
+                    @if($reports->hasMorePages())
+                        <a href="{{ $reports->appends(['status' => $status, 'search' => $search, 'sort' => $sortOrder, 'per_page' => $perPage])->nextPageUrl() }}" style="padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.9rem; text-decoration: none; transition: all 0.2s ease; display: inline-block;">
+                            Selanjutnya →
+                        </a>
+                    @else
+                        <span style="padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-muted); font-size: 0.9rem; cursor: not-allowed; opacity: 0.5;">
+                            Selanjutnya →
+                        </span>
+                    @endif
+                </div>
+            </div>
+        @endif
+    </div>
+</div>
+
+<style>
+    /* Hover effect for pagination buttons */
+    a[href*="page="]:hover {
+        background: var(--primary) !important;
+        color: white !important;
+        border-color: var(--primary) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+    }
+</style>
+@endsection

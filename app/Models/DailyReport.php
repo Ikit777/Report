@@ -13,6 +13,8 @@ class DailyReport extends Model
         'site_id',
         'status',
         'fuelman_id',
+        'collaborator_id',
+        'collaborator_name', // Store history of collaborator name
         'gl_id',
         'spv_id',
         'gl_feedback',
@@ -34,6 +36,11 @@ class DailyReport extends Model
     public function fuelman(): BelongsTo
     {
         return $this->belongsTo(User::class, 'fuelman_id');
+    }
+
+    public function collaborator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'collaborator_id');
     }
 
     public function gl(): BelongsTo
