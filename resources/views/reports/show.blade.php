@@ -543,10 +543,10 @@
                     </div>
                 </div>
                 <!-- Remove Button -->
-                <form action="{{ route('reports.remove-collaborator', $report->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kolaborator?\n\nMereka tidak akan bisa lagi melihat atau mengedit laporan ini.');" style="margin: 0;">
+                <form action="{{ route('reports.remove-collaborator', $report->id) }}" method="POST" id="removeCollaboratorForm" style="margin: 0;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger" style="padding: 0.7rem 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+                    <button type="button" onclick="confirmRemoveCollaborator()" class="btn btn-danger" style="padding: 0.7rem 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -745,7 +745,7 @@
                                 <td class="bold-cell" style="text-align: center;">{{ $item->main_hole_variant ?: $item->tank->main_hole }}</td>
                                 
                                 <!-- Sounding Pagi -->
-                                <td class="val-sounding" style="text-align: center;">
+                                <td class="val-sounding bold-cell" style="text-align: center;">
                                     {{ $item->sounding_pagi !== null ? number_format($item->sounding_pagi, 1, ',', '.') : '' }}
                                 </td>
                                 <td class="val-liter bold-cell" style="text-align: right; padding-right: 8px;">
@@ -767,7 +767,7 @@
                                 <td class="bold-cell" style="text-align: center; text-transform: uppercase;">{{ $item->petugas_pagi }}</td>
                                 
                                 <!-- Sounding Sore -->
-                                <td class="val-sounding" style="text-align: center;">
+                                <td class="val-sounding bold-cell" style="text-align: center;">
                                     {{ $item->sounding_sore !== null ? number_format($item->sounding_sore, 1, ',', '.') : '' }}
                                 </td>
                                 <td class="val-liter bold-cell" style="text-align: right; padding-right: 8px;">
@@ -1383,6 +1383,55 @@
     </div>
 </div>
 
+<!-- Remove Collaborator Confirmation Modal -->
+<div id="removeCollaboratorModal" class="custom-modal-overlay no-print">
+    <div class="custom-modal-content">
+        <h3 class="custom-modal-title" style="color: #dc2626;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <span>Hapus Kolaborator</span>
+        </h3>
+        <div style="margin: 1.5rem 0;">
+            <p class="custom-modal-text" style="margin-bottom: 1rem; font-size: 1rem; font-weight: 600; color: #1e293b;">
+                Apakah Anda yakin ingin menghapus kolaborator dari laporan ini?
+            </p>
+            <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                <div style="display: flex; gap: 0.75rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <div style="flex: 1;">
+                        <p style="font-size: 0.9rem; color: #991b1b; margin: 0; line-height: 1.5;">
+                            <strong>Perhatian:</strong> Setelah dihapus, kolaborator tidak akan bisa lagi melihat atau mengedit laporan ini.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="custom-modal-actions">
+            <button type="button" class="btn btn-secondary" style="padding: 0.65rem 1.5rem; font-weight: 600;" onclick="closeRemoveCollaboratorModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 0.25rem;">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Batal
+            </button>
+            <button type="button" class="btn btn-danger" style="padding: 0.65rem 1.5rem; font-weight: 600;" onclick="submitRemoveCollaborator()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 0.25rem;">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Ya, Hapus Kolaborator
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 function showSnackbar(message, type = 'error') {
     const snackbar = document.getElementById('snackbar');
@@ -1516,6 +1565,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Close remove collaborator modal on outside click
+    const removeModal = document.getElementById('removeCollaboratorModal');
+    if (removeModal) {
+        removeModal.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeRemoveCollaboratorModal();
+            }
+        });
+    }
 });
+
+// Remove Collaborator Functions
+function confirmRemoveCollaborator() {
+    const modal = document.getElementById('removeCollaboratorModal');
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+function closeRemoveCollaboratorModal() {
+    const modal = document.getElementById('removeCollaboratorModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function submitRemoveCollaborator() {
+    const form = document.getElementById('removeCollaboratorForm');
+    if (form) {
+        form.submit();
+    }
+    closeRemoveCollaboratorModal();
+}
 </script>
 @endsection

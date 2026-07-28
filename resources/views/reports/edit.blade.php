@@ -17,11 +17,25 @@
     @method('PUT')
     
     <style>
-        /* Ensure average row inputs are not bold */
+        /* Bold styling for specific data cells */
+        .sheet-table td.bold-cell,
+        .sheet-table td.bold-cell input,
+        .sheet-table td.bold-cell select {
+            font-weight: 700 !important;
+        }
+        
+        /* Ensure average row inputs are not bold EXCEPT for bold-cell class */
         tr[data-avg-type="average"] input,
         tr[data-avg-type="average"] select,
         tr[data-avg-type="average"] td {
             font-weight: normal !important;
+        }
+        
+        /* Exception: bold cells should stay bold even in average rows */
+        tr[data-avg-type="average"] td.bold-cell,
+        tr[data-avg-type="average"] td.bold-cell input,
+        tr[data-avg-type="average"] td.bold-cell select {
+            font-weight: 700 !important;
         }
     </style>
 
